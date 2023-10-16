@@ -6,17 +6,12 @@
 #include <limits>
 #include <string>
 #include <vector>
+#include <filesystem>
 
-#include <GL/glew.h>
+#include "gl_includes.h"
 
-#define GLFW_INCLUDE_GLU
-#include <GLFW/glfw3.h>
+#include "content_drawing.h"
 
-#define TINYGLTF_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-
-#include <tiny_gltf.h>
 
 GLFWwindow* window;
 
@@ -32,10 +27,18 @@ int main()
 	}
 	window = glfwCreateWindow(500, 300, "Future cube window", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
+
+	const std::filesystem::path model_path{"../model"};
+	const std::filesystem::path model_gltf{ model_path / "triangle.gltf" };
+	const std::filesystem::path model_vert{ model_path / "shader.vert" };
+	const std::filesystem::path model_frag{ model_path / "shader.frag" };
+	Content cubes_content(model_gltf.string(), model_vert.string(), model_frag.string());
+	tinygltf::Model& cubes_model = cubes_content.m_model;
+	tinygltf::Mesh& cubes_mesh = cubes_model.meshes[0];
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwSwapBuffers(window);
-
+		draw_mesh(cubes_content, cubes_mesh);
 		glfwPollEvents();
 	}
 	

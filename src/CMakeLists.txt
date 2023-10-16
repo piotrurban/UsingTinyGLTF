@@ -17,7 +17,7 @@ add_executable(Cubes
 "utils.h"
 "utils.cpp"
 "Content.h"
-"Content.cpp")
+"Content.cpp" "gl_includes.h")
 
 target_include_directories(Cubes PRIVATE ${GLEW_INCLUDE_DIR} ${GLFW3_INCLUDE_DIR})
 target_link_libraries ( Cubes

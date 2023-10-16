@@ -1,5 +1,5 @@
 #pragma once
-#include <GL/glew.h>
+#include "gl_includes.h"
 #include <tiny_gltf.h>
 #include <string>
 #include <map>

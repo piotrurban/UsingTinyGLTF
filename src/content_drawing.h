@@ -1,6 +1,4 @@
 #pragma once
 #include "Content.h"
-#include <GL/glew.h>
-#include <tiny_gltf.h>
 
-void draw_mesh(Content& content);
+void draw_mesh(Content& content, tinygltf::Mesh& mesh);

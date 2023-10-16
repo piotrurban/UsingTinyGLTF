@@ -9,6 +9,9 @@
 Content::Content(const std::string& gltf_file, const std::string& vertex_shader_file, const std::string& fragment_shader_file)
 	:
 	m_model{}
+	, m_vertId{}
+	, m_fragId{}
+	, m_progId{}
 {
 	load_from_file(gltf_file);
 	load_and_link_shaders_from_files(vertex_shader_file, fragment_shader_file);
@@ -217,7 +220,7 @@ void Content::setup_mesh_data()
 				}
 			}
 		}
-	}
+}
 #endif
 
 	glUseProgram(m_progId);

@@ -1,5 +1,5 @@
 #pragma once
-#include <GL/glew.h>
+#include "gl_includes.h"
 #include <string>
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))

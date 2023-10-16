@@ -1,6 +1,5 @@
 #pragma once
 #include "gl_includes.h"
-#include <tiny_gltf.h>
 #include <string>
 #include <map>
 

@@ -2,6 +2,19 @@
 #include <GL/glew.h>
 #include <string>
 
+#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+
+#define CheckGLErrors(desc)                                                   \
+  {                                                                           \
+    GLenum e = glGetError();                                                  \
+    if (e != GL_NO_ERROR) {                                                   \
+      printf("OpenGL error in \"%s\": %d (%d) %s:%d\n", desc, e, e, __FILE__, \
+             __LINE__);                                                       \
+      exit(20);                                                               \
+    }                                                                         \
+  }
+
+
 bool LoadShader(GLenum shaderType, GLuint& shader, const char* shaderSourceFilename);
 bool LinkShader(GLuint& prog, GLuint& vertShader, GLuint& fragShader);
 void CheckErrors(std::string desc);

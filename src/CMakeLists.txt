@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
 
-set ( CMAKE_PREFIX_PATH cmake )
-
 include_directories([=[C:\Apps\tinygltf-release]=])
 
 find_package(GLFW3 REQUIRED)
@@ -13,6 +11,8 @@ add_executable(Cubes
 cubes_main.cpp
 content_creation.h
 content_creation.cpp
+content_drawing.h
+content_drawing.cpp
 utils.h
 utils.cpp
 )

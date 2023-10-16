@@ -8,10 +8,10 @@ find_package(OpenGL REQUIRED)
 set(GLEW_INCLUDE_DIR "C:\\Apps\\glew-2.2.0\\include")
 set(GLEW_LIBRARIES [=[C:\Apps\glew-2.2.0\lib\Debug\x64\glew32d.lib]=])
 
+add_subdirectory(TinyGltfTools)
+
 add_executable(Cubes
 "cubes_main.cpp"
-"content_creation.h"
-"content_creation.cpp"
 "content_drawing.h"
 "content_drawing.cpp"
 "utils.h"
@@ -23,6 +23,7 @@ add_executable(Cubes
 
 target_include_directories(Cubes PRIVATE ${GLEW_INCLUDE_DIR} ${GLFW3_INCLUDE_DIR})
 target_link_libraries ( Cubes
+  TinyGltfTools
   ${GLEW_LIBRARIES}
   ${GLFW3_glfw_LIBRARY}
   ${OPENGL_gl_LIBRARY}

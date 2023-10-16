@@ -31,8 +31,7 @@ int main()
 		printf("glewInit failed, exiting\n");
 		exit(2);
 	}
-	std::filesystem::path base_dir{ __FILE__ };
-	base_dir = base_dir.parent_path();
+	std::filesystem::path base_dir{ __FILE__"\\.."};
 	const std::filesystem::path model_path{base_dir/".."/"model"};
 	const std::filesystem::path model_gltf{ model_path / "triangle.gltf" };
 	const std::filesystem::path model_vert{ model_path / "shader.vert" };

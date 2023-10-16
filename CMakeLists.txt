@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
+set ( CMAKE_PREFIX_PATH cmake )
+
 project(Cubes)
 
 add_subdirectory(src)

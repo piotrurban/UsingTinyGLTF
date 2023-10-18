@@ -4,6 +4,7 @@
 std::unique_ptr<BallTracker> BallTracker::s_instance{ nullptr };
 float BallTracker::s_camZ{ 3.0F };
 
+
 void BallTracker::init()
 {
 	trackball(curr_quat, 0, 0, 0, 0);
@@ -27,22 +28,37 @@ void BallTracker::setWindowSize(float _width, float _height)
 	height = _height;
 }
 
-BallTracker& BallTracker::getInstance()
+void BallTracker::registerWithGLFW(GLFWwindow* window)
+{
+	glfwSetCursorPosCallback(window, BallTracker::motionFunc);
+}
+
+BallTracker&  BallTracker::getInstance()
 {
 	if (!s_instance)
 	{
-		s_instance = std::make_unique<BallTracker>();
+		s_instance.reset(new BallTracker());
 	}
 	return *s_instance;
 }
 
-void BallTracker::motionFunc(GLFWwindow* window, double mouse_x, double mouse_y) {
+void BallTracker::motionFunc(GLFWwindow* window, double mouse_x, double mouse_y)
+{
+	//BallTracker::getInstance().implMotionFunc(window, mouse_x, mouse_y);
+}
+
+inline float(&BallTracker::getCurrQuat())[4]
+{
+	return curr_quat;
+}
+
+void BallTracker::implMotionFunc(GLFWwindow* window, double mouse_x, double mouse_y) {
 	(void)window;
 	float rotScale = 1.0f;
 	float transScale = 2.0f;
-	const bool mouseLeftPressed{glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS};
-	const bool mouseMiddlePressed{glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS};
-	const bool mouseRightPressed{glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS};
+	const bool mouseLeftPressed{ glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS };
+	const bool mouseMiddlePressed{ glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS };
+	const bool mouseRightPressed{ glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS };
 
 	if (mouseLeftPressed) {
 		trackball(prev_quat, rotScale * (2.0f * prevMouseX - width) / (float)width,

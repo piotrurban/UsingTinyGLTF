@@ -19,7 +19,7 @@ add_executable(Cubes
 "Content.h"
 "Content.cpp"
 "gl_includes.h"
- "tinygltf_implementation.cpp")
+ "tinygltf_implementation.cpp" "BallTracker.cpp" "BallTracker.h")
 
 target_include_directories(Cubes PRIVATE ${GLEW_INCLUDE_DIR} ${GLFW3_INCLUDE_DIR})
 target_link_libraries ( Cubes

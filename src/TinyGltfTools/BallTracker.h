@@ -16,6 +16,9 @@ public:
 	static BallTracker& getInstance();
 	static void motionFunc(GLFWwindow* window, double mouse_x, double mouse_y);
 	float(&getCurrQuat())[4];
+	void setCamera();
+
+private:
 	void implMotionFunc(GLFWwindow* window, double mouse_x, double mouse_y);
 
 private:

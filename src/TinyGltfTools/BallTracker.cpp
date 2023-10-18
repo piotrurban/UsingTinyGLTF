@@ -44,12 +44,25 @@ BallTracker&  BallTracker::getInstance()
 
 void BallTracker::motionFunc(GLFWwindow* window, double mouse_x, double mouse_y)
 {
-	//BallTracker::getInstance().implMotionFunc(window, mouse_x, mouse_y);
+	BallTracker::getInstance().implMotionFunc(window, mouse_x, mouse_y);
 }
 
 inline float(&BallTracker::getCurrQuat())[4]
 {
 	return curr_quat;
+}
+
+void BallTracker::setCamera()
+{
+	GLfloat mat[4][4];
+	build_rotmatrix(mat, curr_quat);
+	glMatrixMode(GL_PROJECTION);
+	gluLookAt(eye[0], eye[1], eye[2], lookat[0], lookat[1], lookat[2], up[0],
+		up[1], up[2]);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glMultMatrixf(&mat[0][0]);
 }
 
 void BallTracker::implMotionFunc(GLFWwindow* window, double mouse_x, double mouse_y) {

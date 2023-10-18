@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 include_directories([=[C:\Apps\tinygltf-release]=])
 message(STATUS "in src current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
 message(STATUS "in src current_source_dir: ${CMAKE_CURRENT_SOURCE_DIR}")
+set(PROJECT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 find_package(GLFW3 REQUIRED)
 find_package(OpenGL REQUIRED)
 set(GLEW_INCLUDE_DIR "C:\\Apps\\glew-2.2.0\\include")
@@ -19,9 +20,12 @@ add_executable(Cubes
 "Content.h"
 "Content.cpp"
 "gl_includes.h"
- "tinygltf_implementation.cpp" "BallTracker.cpp" "BallTracker.h")
+ "tinygltf_implementation.cpp"
+ "TinyGltfTools/BallTracker.cpp"
+ "TinyGltfTools/BallTracker.h"
+)
 
-target_include_directories(Cubes PRIVATE ${GLEW_INCLUDE_DIR} ${GLFW3_INCLUDE_DIR})
+target_include_directories(Cubes PRIVATE ${GLEW_INCLUDE_DIR} ${GLFW3_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries ( Cubes
   TinyGltfTools
   ${GLEW_LIBRARIES}

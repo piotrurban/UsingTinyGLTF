@@ -3,9 +3,13 @@
 #include <BallTracker.h>
 #include <utils.h>
 #include <TransformUtils.h>
+#include <get_mesh_data.h>
 
 #include <filesystem>
 #include <iostream>
+#include <chrono>
+
+using namespace std::chrono_literals;
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
@@ -19,8 +23,15 @@ void printNodeVertices(Content& content)
 		{
 			tinygltf::Node& node = model.nodes[scene.nodes[node_index]];
 			std::cout << "NODE " << node.name << ":\n";
-			
+
 		}
+	}
+}
+void printAllMeshData(Content& content)
+{
+	for (auto& mesh : content.m_model.meshes)
+	{
+		get_mesh_data(content, mesh);
 	}
 }
 int main()
@@ -61,6 +72,9 @@ int main()
 	reshapeFunc(window, window_width, window_height);
 
 	printNodeVertices(scene_graph_content);
+	printAllMeshData(scene_graph_content);
+
+	std::chrono::steady_clock::time_point time{ std::chrono::steady_clock::now() };
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -77,6 +91,11 @@ int main()
 
 		draw_model(scene_graph_content);
 
+		if (std::chrono::steady_clock::now() - time > 2000ms)
+		{
+			time = std::chrono::steady_clock::now();
+			printAllMeshData(scene_graph_content);
+		}
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
 

@@ -7,4 +7,5 @@ target_link_libraries ( Tetrahedron
   TinyGltfTools
   ${EXEC_LIBS}
 )
+add_dependencies(Tetrahedron CopyModels)
 

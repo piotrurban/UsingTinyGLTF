@@ -20,7 +20,9 @@ list(APPEND EXEC_INCLUDE_DIRS
 ${GLEW_INCLUDE_DIR}
 ${GLFW3_INCLUDE_DIR}
 ${CMAKE_CURRENT_SOURCE_DIR}
+${CMAKE_CURRENT_SOURCE_DIR}/TinyGltfTools
 )
+add_compile_definitions(PROJECT_INCLUDE_DIR=${PROJECT_INCLUDE_DIR})
 
 add_subdirectory(TinyGltfTools)
 add_subdirectory(UseSceneGraph)

@@ -1,6 +1,7 @@
 #pragma once
 #include "gl_includes.h"
 #include <string>
+#include <vector>
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
@@ -20,3 +21,6 @@ bool LinkShader(GLuint& prog, GLuint& vertShader, GLuint& fragShader);
 void CheckErrors(std::string desc);
 
 size_t ComponentTypeByteSize(int type);
+void QuatToAngleAxis(const std::vector<double> quaternion,
+	double& outAngleDegrees,
+	double* axis);

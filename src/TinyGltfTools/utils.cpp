@@ -98,3 +98,27 @@ size_t ComponentTypeByteSize(int type) {
 		return 0;
 	}
 }
+
+void QuatToAngleAxis(const std::vector<double> quaternion,
+	double& outAngleDegrees,
+	double* axis) {
+	double qx = quaternion[0];
+	double qy = quaternion[1];
+	double qz = quaternion[2];
+	double qw = quaternion[3];
+
+	double angleRadians = 2 * acos(qw);
+	if (angleRadians == 0.0) {
+		outAngleDegrees = 0.0;
+		axis[0] = 0.0;
+		axis[1] = 0.0;
+		axis[2] = 1.0;
+		return;
+	}
+
+	double denom = sqrt(1 - qw * qw);
+	outAngleDegrees = angleRadians * 180.0 / 3.1415926;
+	axis[0] = qx / denom;
+	axis[1] = qy / denom;
+	axis[2] = qz / denom;
+}

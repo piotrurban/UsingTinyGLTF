@@ -1,6 +1,77 @@
 #include "content_drawing.h"
 #include "utils.h"
 
+void draw_model(Content& content) {
+	tinygltf::Model& model = content.m_model;
+#if 0
+	std::map<std::string, tinygltf::Mesh>::const_iterator it(scene.meshes.begin());
+	std::map<std::string, tinygltf::Mesh>::const_iterator itEnd(scene.meshes.end());
+
+	for (; it != itEnd; it++) {
+		DrawMesh(scene, it->second);
+		DrawCurves(scene, it->second);
+	}
+#else
+	// If the glTF asset has at least one scene, and doesn't define a default one
+	// just show the first one we can find
+	assert(model.scenes.size() > 0);
+	int scene_to_display = model.defaultScene > -1 ? model.defaultScene : 0;
+	const tinygltf::Scene& scene = model.scenes[scene_to_display];
+	for (size_t i = 0; i < scene.nodes.size(); i++) {
+		draw_node(content, model.nodes[scene.nodes[i]]);
+	}
+#endif
+}
+// Hierarchically draw nodes
+void draw_node(Content& content, const tinygltf::Node& node) {
+	// Apply xform
+
+	tinygltf::Model& model = content.m_model;
+	glPushMatrix();
+	if (node.matrix.size() == 16) {
+		// Use `matrix' attribute
+		glMultMatrixd(node.matrix.data());
+	}
+	else {
+		// Assume Trans x Rotate x Scale order
+		if (node.translation.size() == 3) {
+			glTranslated(node.translation[0], node.translation[1],
+				node.translation[2]);
+		}
+
+		if (node.rotation.size() == 4) {
+			double angleDegrees;
+			double axis[3];
+
+			QuatToAngleAxis(node.rotation, angleDegrees, axis);
+
+			glRotated(angleDegrees, axis[0], axis[1], axis[2]);
+		}
+
+		if (node.scale.size() == 3) {
+			glScaled(node.scale[0], node.scale[1], node.scale[2]);
+		}
+	}
+
+	// std::cout << "node " << node.name << ", Meshes " << node.meshes.size() <<
+	// std::endl;
+
+	// std::cout << it->first << std::endl;
+	// FIXME(syoyo): Refactor.
+	// DrawCurves(scene, it->second);
+	if (node.mesh > -1) {
+		assert(node.mesh < model.meshes.size());
+		draw_mesh(content, model.meshes[node.mesh]);
+	}
+
+	// Draw child nodes.
+	for (size_t i = 0; i < node.children.size(); i++) {
+		assert(node.children[i] < model.nodes.size());
+		draw_node(content, model.nodes[node.children[i]]);
+	}
+
+	glPopMatrix();
+}
 void draw_mesh(Content& content, tinygltf::Mesh& mesh)
 {
 	tinygltf::Model& model = content.m_model;

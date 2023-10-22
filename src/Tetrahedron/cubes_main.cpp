@@ -14,7 +14,8 @@
 #include "TinyGltfTools/TransformUtils.h"
 #include "TinyGltfTools/BallTracker.h"
 #include "TinyGltfTools/trackball.h"
-
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
 GLFWwindow* window;
 
 int main()
@@ -40,7 +41,8 @@ int main()
 	ballTracker.setWindowSize(768.0, 768.0);
 	ballTracker.registerWithGLFW(window);
 
-	std::filesystem::path base_dir{ __FILE__"\\..\\.."};
+	//std::filesystem::path base_dir{ __FILE__"\\..\\.."};
+	std::filesystem::path base_dir{ TOSTRING(PROJECT_INCLUDE_DIR) };
 	const std::filesystem::path model_path{base_dir/".."/"model"};
 	const std::filesystem::path model_gltf{ model_path / "triangle.gltf" };
 	const std::filesystem::path model_vert{ model_path / "shader.vert" };

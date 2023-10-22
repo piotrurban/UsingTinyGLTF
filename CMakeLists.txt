@@ -7,5 +7,8 @@ message(STATUS "Prefix Path: ${CMAKE_PREFIX_PATH}")
 
 set(CMAKE_CXX_STANDARD 20)
 add_compile_options("/Zc:__cplusplus")
+
+
+add_subdirectory(CopyModels)
 add_subdirectory(src)
 

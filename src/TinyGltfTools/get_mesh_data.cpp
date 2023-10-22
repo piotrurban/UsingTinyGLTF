@@ -2,6 +2,9 @@
 
 #include <TransformUtils.h>
 #include <utils.h>
+
+#include <glm/vec2.hpp>
+
 #include <iostream>
 void get_mesh_data(Content& content, tinygltf::Mesh& mesh)
 {

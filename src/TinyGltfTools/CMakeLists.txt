@@ -20,3 +20,5 @@ ${GLEW_INCLUDE_DIR}
 ${GLFW3_INCLUDE_DIR}
 ${PROJECT_INCLUDE_DIR}
 ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(TinyGltfTools PRIVATE glm::glm)

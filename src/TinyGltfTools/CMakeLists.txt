@@ -14,5 +14,9 @@ add_library(TinyGltfTools STATIC
 "tinygltf_implementation.cpp"
 "utils.h"
 "utils.cpp"
-)
-target_include_directories(TinyGltfTools PRIVATE ${GLEW_INCLUDE_DIR} ${GLFW3_INCLUDE_DIR} ${PROJECT_INCLUDE_DIR})
+ "get_mesh_data.cpp" "get_mesh_data.h")
+target_include_directories(TinyGltfTools PRIVATE
+${GLEW_INCLUDE_DIR}
+${GLFW3_INCLUDE_DIR}
+${PROJECT_INCLUDE_DIR}
+${CMAKE_CURRENT_SOURCE_DIR})

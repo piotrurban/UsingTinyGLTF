@@ -10,6 +10,19 @@
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
+void printNodeVertices(Content& content)
+{
+	tinygltf::Model& model = content.m_model;
+	for (auto& scene : model.scenes)
+	{
+		for (int node_index = 0; node_index < scene.nodes.size(); node_index++)
+		{
+			tinygltf::Node& node = model.nodes[scene.nodes[node_index]];
+			std::cout << "NODE " << node.name << ":\n";
+			
+		}
+	}
+}
 int main()
 {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -46,6 +59,8 @@ int main()
 	Content scene_graph_content(model_gltf.string(), model_vert.string(), model_frag.string());
 	scene_graph_content.setup_mesh_data();
 	reshapeFunc(window, window_width, window_height);
+
+	printNodeVertices(scene_graph_content);
 
 	while (!glfwWindowShouldClose(window))
 	{

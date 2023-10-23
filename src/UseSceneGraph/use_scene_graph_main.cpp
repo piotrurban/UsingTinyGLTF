@@ -74,6 +74,8 @@ int main()
 	printNodeVertices(scene_graph_content);
 	printAllMeshData(scene_graph_content);
 
+	testTriangleRayCast();
+
 	std::chrono::steady_clock::time_point time{ std::chrono::steady_clock::now() };
 
 	while (!glfwWindowShouldClose(window))

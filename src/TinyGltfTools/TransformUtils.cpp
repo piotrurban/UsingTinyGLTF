@@ -4,6 +4,7 @@
 #include <vector>
 #include <array>
 #include <iostream>
+#include <sstream>
 #include <format>
 
 #include <glm/vec3.hpp>
@@ -59,19 +60,34 @@ void triangleRayCast(const std::array<glm::vec3, 3>& triangle_verts, const glm::
 	}
 }
 
+std::string to_string(const glm::vec3& vec3)
+{
+	std::stringstream oss;
+	oss << std::format("( {}, {}, {})", vec3.x, vec3.y, vec3.z);
+	return oss.str();
+}
+
+std::ostream& operator<<(std::ostream& os, const glm::vec3& vec3)
+{
+	os << to_string(vec3);
+	return os;
+}
 glm::vec3 triangleZRayCast(const std::array<glm::vec3, 3>& triangle_verts, const glm::vec2& projection_xy)
 {
 	const glm::vec3 normal = glm::cross(triangle_verts.at(1) - triangle_verts.at(0), triangle_verts.at(2) - triangle_verts.at(0));
-	const float sum0 = glm::dot(normal, triangle_verts.at(0));
-	const float cz = sum0 - glm::dot(normal, glm::vec3(projection_xy, 0));
+	// Die Ebene des Dreiecks: a*x + b*y + c*z + d = 0
+	// normal = [a, b, c]
+	const float d = glm::dot(normal, triangle_verts.at(0));
+	// finde den Schnittpunkt (x,y,z)
+	const float cz = d - glm::dot(normal, glm::vec3(projection_xy, 0));
 	if (normal.z != 0)
 	{
 		const float z = cz / normal.z;
-		const glm::vec3 p(projection_xy, z);
-		if ((glm::dot(triangle_verts.at(0) - p, triangle_verts.at(1) - p) < 0) ||
-			(glm::dot(triangle_verts.at(0) - p, triangle_verts.at(2) - p) < 0))
+		const glm::vec3 intersection_point(projection_xy, z);
+		if ((glm::dot(triangle_verts.at(0) - intersection_point, triangle_verts.at(1) - intersection_point) < 0) ||
+			(glm::dot(triangle_verts.at(0) - intersection_point, triangle_verts.at(2) - intersection_point) < 0))
 		{
-			return p;
+			return intersection_point;
 		}
 		else
 		{

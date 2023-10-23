@@ -33,7 +33,7 @@ void get_mesh_data(Content& content, tinygltf::Mesh& mesh)
 		std::map<std::string, int>::const_iterator it(primitive.attributes.begin());
 		std::map<std::string, int>::const_iterator itEnd(
 			primitive.attributes.end());
-		
+
 		auto positionAttribIt = std::find_if(it, itEnd, [](auto& attrib) {return attrib.first.compare("POSITION") == 0; });
 		if (positionAttribIt != itEnd)
 		{
@@ -43,8 +43,27 @@ void get_mesh_data(Content& content, tinygltf::Mesh& mesh)
 			GLuint bufferName{ content.m_bufferState[accessor.bufferView].vb };
 			glGetNamedBufferParameteriv(bufferName, GL_BUFFER_SIZE, &bufferSize);
 			std::vector<float> float_data(bufferSize / sizeof(float));
-			glGetNamedBufferSubData(bufferName, 0, bufferSize, float_data.data());
-			std::cout << "mesh data: NAME = " << mesh.name << ", SIZE = " << float_data.size() << ", DATA: " << float_data[0] << ", " << float_data[1] << "...\n";
+			
+			if (primitive.mode == TINYGLTF_MODE_TRIANGLES)
+			{
+				const auto& index_accessor = model.accessors[primitive.indices];
+				std::vector<unsigned short> indices(index_accessor.count);
+				glGetNamedBufferSubData(content.m_bufferState[index_accessor.bufferView].vb, index_accessor.byteOffset, index_accessor.count * 2,
+					indices.data());
+				std::vector<glm::vec3> triangle_data(bufferSize / sizeof(float) / 3);
+				glGetNamedBufferSubData(bufferName, 0, bufferSize, triangle_data.data());
+				std::cout << "triangle mesh data: NAME = " << mesh.name << ", SIZE = 3 * " << triangle_data.size() <<
+					", DATA: "
+					<< triangle_data[indices[0]]
+					<< ", "
+					<< triangle_data[indices[1]]
+					<< "...\n"; 
+			}
+			else
+			{
+				glGetNamedBufferSubData(bufferName, 0, bufferSize, float_data.data());
+				std::cout << "mesh data: NAME = " << mesh.name << ", SIZE = " << float_data.size() << ", DATA: " << float_data[0] << ", " << float_data[1] << "...\n";
+			}
 		}
 		//for (; it != itEnd; it++) {
 		//	assert(it->second >= 0);

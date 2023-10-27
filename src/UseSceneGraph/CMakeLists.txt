@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
+project(UseSceneGraphProject)
+
 add_executable(UseSceneGraph "use_scene_graph_main.cpp")
 
 target_include_directories(UseSceneGraph PRIVATE ${EXEC_INCLUDE_DIRS}

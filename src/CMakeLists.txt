@@ -29,29 +29,4 @@ add_compile_definitions(PROJECT_INCLUDE_DIR=${PROJECT_INCLUDE_DIR})
 add_subdirectory(TinyGltfTools)
 add_subdirectory(UseSceneGraph)
 add_subdirectory(Tetrahedron)
-
-#add_executable(Cubes
-#"cubes_main.cpp"
-#"content_drawing.h"
-#"content_drawing.cpp"
-#"utils.h"
-#"utils.cpp"
-#"Content.h"
-#"Content.cpp"
-#"gl_includes.h"
-# "tinygltf_implementation.cpp"
-# "TinyGltfTools/BallTracker.cpp"
-# "TinyGltfTools/BallTracker.h"
-# "UseSceneGraph/use_scene_graph_main.cpp")
-#
-#target_include_directories(Cubes PRIVATE ${GLEW_INCLUDE_DIR} ${GLFW3_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
-#target_link_libraries ( Cubes
-#  TinyGltfTools
-#  ${GLEW_LIBRARIES}
-#  ${GLFW3_glfw_LIBRARY}
-#  ${OPENGL_gl_LIBRARY}
-#  ${OPENGL_glu_LIBRARY}
-#  ${CMAKE_DL_LIBS}
-#  ${CMAKE_THREAD_LIBS_INIT}
-#  )
-#
+add_subdirectory(UseSceneGraphModern)

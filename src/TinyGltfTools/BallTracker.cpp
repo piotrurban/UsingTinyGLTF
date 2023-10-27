@@ -1,6 +1,9 @@
 #include "BallTracker.h"
 #include "TinyGltfTools/trackball.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 std::unique_ptr<BallTracker> BallTracker::s_instance{ nullptr };
 float BallTracker::s_camZ{ 3.0F };
 
@@ -63,6 +66,19 @@ void BallTracker::setCamera()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glMultMatrixf(&mat[0][0]);
+}
+
+glm::mat4 BallTracker::getProjectionMat()
+{
+	return glm::lookAt(glm::make_vec3(eye), glm::make_vec3(lookat), glm::make_vec3(up));
+}
+
+const glm::mat4 BallTracker::getModelMat()
+{
+	//return glm::mat4(glm::make_quat(curr_quat));
+	GLfloat mat[4][4];
+	build_rotmatrix(mat, curr_quat);
+	return glm::make_mat4(&mat[0][0]);
 }
 
 void BallTracker::implMotionFunc(GLFWwindow* window, double mouse_x, double mouse_y) {

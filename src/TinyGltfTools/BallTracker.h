@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include "gl_includes.h"
+#include <glm/mat4x4.hpp>
 
 class BallTracker
 {
@@ -17,6 +18,9 @@ public:
 	static void motionFunc(GLFWwindow* window, double mouse_x, double mouse_y);
 	float(&getCurrQuat())[4];
 	void setCamera();
+
+	glm::mat4 getProjectionMat();
+	const glm::mat4 getModelMat();
 
 private:
 	void implMotionFunc(GLFWwindow* window, double mouse_x, double mouse_y);

@@ -43,7 +43,7 @@ void get_mesh_data(Content& content, tinygltf::Mesh& mesh)
 			GLuint bufferName{ content.m_bufferState[accessor.bufferView].vb };
 			glGetNamedBufferParameteriv(bufferName, GL_BUFFER_SIZE, &bufferSize);
 			std::vector<float> float_data(bufferSize / sizeof(float));
-			
+
 			if (primitive.mode == TINYGLTF_MODE_TRIANGLES)
 			{
 				const auto& index_accessor = model.accessors[primitive.indices];
@@ -57,7 +57,7 @@ void get_mesh_data(Content& content, tinygltf::Mesh& mesh)
 					<< triangle_data[indices[0]]
 					<< ", "
 					<< triangle_data[indices[1]]
-					<< "...\n"; 
+					<< "...\n";
 			}
 			else
 			{
@@ -153,5 +153,26 @@ void get_mesh_data(Content& content, tinygltf::Mesh& mesh)
 		//		}
 		//	}
 		//}
+	}
+}
+
+void printNodeVertices(Content& content)
+{
+	tinygltf::Model& model = content.m_model;
+	for (auto& scene : model.scenes)
+	{
+		for (int node_index = 0; node_index < scene.nodes.size(); node_index++)
+		{
+			tinygltf::Node& node = model.nodes[scene.nodes[node_index]];
+			std::cout << "NODE " << node.name << ":\n";
+
+		}
+	}
+}
+void printAllMeshData(Content& content)
+{
+	for (auto& mesh : content.m_model.meshes)
+	{
+		get_mesh_data(content, mesh);
 	}
 }

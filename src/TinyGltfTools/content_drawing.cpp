@@ -1,5 +1,6 @@
 #include "content_drawing.h"
 #include "utils.h"
+#include <glm/gtc/type_ptr.hpp>
 
 void draw_model(Content& content) {
 	tinygltf::Model& model = content.m_model;
@@ -24,18 +25,21 @@ void draw_model(Content& content) {
 }
 // Hierarchically draw nodes
 void draw_node(Content& content, const tinygltf::Node& node) {
+	const glm::mat4 saveModelMat = content.m_modelMat;
 	// Apply xform
 	tinygltf::Model& model = content.m_model;
 	glPushMatrix();
 	if (node.matrix.size() == 16) {
 		// Use `matrix' attribute
 		glMultMatrixd(node.matrix.data());
+		content.m_modelMat = glm::make_mat4x4(node.matrix.data()) * content.m_modelMat;
 	}
 	else {
 		// Assume Trans x Rotate x Scale order
 		if (node.translation.size() == 3) {
 			glTranslated(node.translation[0], node.translation[1],
 				node.translation[2]);
+			content.m_modelMat = glm::translate(content.m_modelMat, glm::make_vec3(node.translation.data()));
 		}
 
 		if (node.rotation.size() == 4) {
@@ -45,13 +49,29 @@ void draw_node(Content& content, const tinygltf::Node& node) {
 			QuatToAngleAxis(node.rotation, angleDegrees, axis);
 
 			glRotated(angleDegrees, axis[0], axis[1], axis[2]);
+			content.m_modelMat = glm::rotate(content.m_modelMat, angleDegrees*3.1415926/180.0, glm::make_vec3(node.rotation.data()));
 		}
 
 		if (node.scale.size() == 3) {
 			glScaled(node.scale[0], node.scale[1], node.scale[2]);
+			content.m_modelMat = glm::scale(content.m_modelMat, glm::make_vec3(node.scale.data()));
 		}
 	}
 
+	GLuint u_MVP = glGetUniformLocation(content.m_progId, "u_MVP");
+	CheckErrors("get MVP location");
+	//GLuint u_MVInvTrans = glGetUniformLocation(content.m_progId, "u_MVInvTrans");
+	if (u_MVP != -1)
+	{
+		const auto mvp = content.m_perspectiveMat * content.m_viewMat * content.m_modelMat;
+		glUniformMatrix4fv(u_MVP, 1, GL_FALSE, glm::value_ptr(glm::mat4(content.m_perspectiveMat* content.m_viewMat*content.m_modelMat)));
+		CheckErrors("set u_MVP");
+	}
+	/*if (u_MVInvTrans != -1)
+	{
+		glUniformMatrix4dv(u_MVInvTrans, 16, GL_FALSE, glm::value_ptr(glm::transpose(glm::inverse(content.m_viewMat * content.m_modelMat))));
+		CheckErrors("set u_MVInvTrans");
+	}*/
 	// std::cout << "node " << node.name << ", Meshes " << node.meshes.size() <<
 	// std::endl;
 
@@ -69,6 +89,7 @@ void draw_node(Content& content, const tinygltf::Node& node) {
 		draw_node(content, model.nodes[node.children[i]]);
 	}
 
+	content.m_modelMat = saveModelMat;
 	glPopMatrix();
 }
 void draw_mesh(Content& content, tinygltf::Mesh& mesh)

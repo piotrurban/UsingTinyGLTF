@@ -5,6 +5,8 @@
 #include <string>
 #include <map>
 
+#include <glm/mat4x4.hpp>
+
 
 typedef struct {
 	GLuint vb;
@@ -42,4 +44,8 @@ public:
 	GLuint m_vertId;
 	GLuint m_fragId;
 	GLuint m_progId;
+
+	glm::dmat4 m_perspectiveMat;
+	glm::dmat4 m_viewMat;
+	glm::dmat4 m_modelMat;
 };

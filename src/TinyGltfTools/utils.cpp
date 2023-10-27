@@ -3,6 +3,29 @@
 
 #include <vector>
 #include <cassert>
+#include <iostream>
+
+GLenum glCheckError_(const char* file, int line, GLenum errorCode)
+{
+	//GLenum errorCode;
+	if (errorCode != GL_NO_ERROR)
+	{
+		std::string error;
+		switch (errorCode)
+		{
+		case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
+		case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
+		case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
+		case GL_STACK_OVERFLOW:                error = "STACK_OVERFLOW"; break;
+		case GL_STACK_UNDERFLOW:               error = "STACK_UNDERFLOW"; break;
+		case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
+		case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
+		}
+		std::cout << error << " | " << file << " (" << line << ")" << std::endl;
+	}
+	return errorCode;
+}
+#define glCheckError(e) glCheckError_(__FILE__, __LINE__, e) 
 
 bool LoadShader(GLenum shaderType,  // GL_VERTEX_SHADER or GL_FRAGMENT_SHADER(or
 	// maybe GL_COMPUTE_SHADER)
@@ -75,6 +98,7 @@ void CheckErrors(std::string desc) {
 	GLenum e = glGetError();
 	if (e != GL_NO_ERROR) {
 		fprintf(stderr, "OpenGL error in \"%s\": %d (%d)\n", desc.c_str(), e, e);
+		glCheckError(e);
 		exit(20);
 	}
 }

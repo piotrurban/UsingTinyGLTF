@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <iostream>
 #include <chrono>
+#include <glm/gtc/matrix_transform.hpp>
 
 using namespace std::chrono_literals;
 
@@ -46,7 +47,7 @@ int main()
 	std::filesystem::path base_dir{ TOSTRING(PROJECT_INCLUDE_DIR) };
 	const std::filesystem::path model_path{ base_dir / ".." / "model/scene_graph_example" };
 	const std::filesystem::path model_gltf{ model_path / "scene_graph.gltf" };
-	const std::filesystem::path model_vert{ model_path / "../shader.vert" };
+	const std::filesystem::path model_vert{ model_path / "../shader_modern.vert" };
 	const std::filesystem::path model_frag{ model_path / "../shader.frag" };
 	Content scene_graph_content(model_gltf.string(), model_vert.string(), model_frag.string());
 	scene_graph_content.setup_mesh_data();
@@ -55,19 +56,25 @@ int main()
 	printNodeVertices(scene_graph_content);
 	printAllMeshData(scene_graph_content);
 
-	testTriangleRayCast();
 
 	std::chrono::steady_clock::time_point time{ std::chrono::steady_clock::now() };
+
+	const glm::mat4 persp = glm::perspective(45.0f, (float)window_width / (float)window_height, 0.1f, 1000.0f);
+	scene_graph_content.m_perspectiveMat = persp;
 
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
 
 		glMatrixMode(GL_PROJECTION);
-		GLfloat projectionMatrix[16];
-		glGetFloatv(GL_PROJECTION_MATRIX, projectionMatrix);
+	
 		glPushMatrix();
 		ballTracker.setCamera();
+		const glm::mat4 proj = ballTracker.getProjectionMat();
+		const glm::mat4 camera = ballTracker.getModelMat();
+		scene_graph_content.m_perspectiveMat = glm::dmat4(persp*proj);
+		scene_graph_content.m_viewMat =  camera;
+		scene_graph_content.m_modelMat = glm::mat4(1.0);
 
 		glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

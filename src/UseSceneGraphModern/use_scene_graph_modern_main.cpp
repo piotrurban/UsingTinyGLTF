@@ -51,11 +51,10 @@ int main()
 	const std::filesystem::path model_frag{ model_path / "../shader.frag" };
 	Content scene_graph_content(model_gltf.string(), model_vert.string(), model_frag.string());
 	scene_graph_content.setup_mesh_data();
+
+	const std::vector<glm::vec3> cubePoints = getMeshPositions(scene_graph_content, 0);
+
 	reshapeFunc(window, window_width, window_height);
-
-	//printNodeVertices(scene_graph_content);
-	//printAllMeshData(scene_graph_content);
-
 
 	std::chrono::steady_clock::time_point time{ std::chrono::steady_clock::now() };
 

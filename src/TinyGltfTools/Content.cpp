@@ -2,6 +2,7 @@
 #include "utils.h"
 
 #include <iostream>
+#include <algorithm>
 
 const MeshDataBufferView MeshDataBufferView::s_empty{};
 
@@ -262,14 +263,14 @@ MeshDataBufferView getMeshAttributeData(const Content& content, const unsigned s
 	const tinygltf::Accessor& accessor = model.accessors.at(accessorIdx);
 
 	const tinygltf::BufferView& bufferView = model.bufferViews.at(accessor.bufferView);
-	char* dataStart = (char*)model.buffers.at(bufferView.buffer).data.data() + bufferView.byteOffset + accessor.byteOffset;
+	const unsigned char* dataStart = &model.buffers.at(bufferView.buffer).data.at(0) + bufferView.byteOffset + accessor.byteOffset;
 	return MeshDataBufferView{ dataStart, accessor.count, bufferView.byteStride, accessor.type,	accessor.componentType };
 }
 
 glm::vec3 getVec3(const MeshDataBufferView& dataView, unsigned long long index)
 {
-	assert(dataView.m_type == TINYGLTF_TYPE_VEC3);
-	return glm::make_vec3(dataView[index]);
+	assert(dataView.m_type == TINYGLTF_TYPE_VEC3 && dataView.m_componentType == TINYGLTF_COMPONENT_TYPE_FLOAT);
+	return glm::make_vec3((float*)dataView[index]);
 }
 
 const unsigned short getIndex(const MeshDataBufferView& dataView, unsigned long long index)
@@ -288,12 +289,15 @@ std::vector<glm::vec3> getMeshPositions(const Content& content, unsigned short m
 	std::vector<glm::vec3> result(bufferSize);
 	for (size_t i = 0; i < bufferSize; i++)
 	{
+		const size_t index = getIndex(indicesBuffer, i);
+		const glm::vec3 vec = getVec3(positionBuffer, index);
+		std::cout << std::format("index: {}, vec: ( {}, {}, {} )\n", index, vec.x, vec.y, vec.z);
 		result[i] = getVec3(positionBuffer, getIndex(indicesBuffer, i));
 	}
 	return result;
 }
 
-MeshDataBufferView::MeshDataBufferView(char* rawData, size_t count, unsigned long long stride, int type, int componentType)
+MeshDataBufferView::MeshDataBufferView(const unsigned char* rawData, size_t count, unsigned long long stride, int type, int componentType)
 	:
 	m_rawData{ rawData },
 	m_count{ count },

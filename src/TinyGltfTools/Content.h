@@ -54,13 +54,13 @@ public:
 struct MeshDataBufferView
 {
 	MeshDataBufferView() = default;
-	MeshDataBufferView(char* rawData, size_t count, unsigned long long stride, int type, int componentType);
-	const inline char* operator[](unsigned long long index) const
+	MeshDataBufferView(const unsigned char* rawData, size_t count, unsigned long long stride, int type, int componentType);
+	const inline unsigned char* operator[](unsigned long long index) const
 	{
 		return m_rawData + index * m_stride;
 	}
 
-	char* m_rawData{ nullptr };
+	const unsigned char* m_rawData{ nullptr };
 	size_t m_count;
 	unsigned long long  m_stride;
 	int m_type;

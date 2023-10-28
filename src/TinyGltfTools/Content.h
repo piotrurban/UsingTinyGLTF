@@ -4,8 +4,10 @@
 
 #include <string>
 #include <map>
+#include <vector>
 
 #include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 
@@ -35,6 +37,9 @@ public:
 	bool load_and_link_shaders_from_files(const std::string& vertex_shader, const std::string& fragment_shader);
 	void setup_mesh_data();
 
+	std::map<unsigned short, std::vector<glm::vec3>>& getMeshToPositionsMap();
+
+
 	tinygltf::Model m_model;
 	std::map<int, GLBufferState> m_bufferState;
 	std::map<std::string, GLMeshState> m_meshState;
@@ -49,6 +54,8 @@ public:
 	glm::dmat4 m_perspectiveMat;
 	glm::dmat4 m_viewMat;
 	glm::dmat4 m_modelMat;
+
+	std::map<unsigned short, std::vector<glm::vec3>> m_meshToPositionMap;
 };
 
 struct MeshDataBufferView

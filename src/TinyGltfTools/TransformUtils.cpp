@@ -1,6 +1,7 @@
 #include "TransformUtils.h"
 #include "gl_includes.h"
 
+
 #include <vector>
 #include <array>
 #include <iostream>
@@ -114,3 +115,22 @@ void testTriangleRayCast()
 
 	}
 }
+
+std::pair<float, float> windowToNormCoord(int win_x, int win_y, GLFWwindow* window)
+{
+	int width, height;
+	glfwGetWindowSize(window, &width, &height);
+	return std::make_pair(2.0F * static_cast<float>(win_x) / static_cast<float>(width) - 1.0F, 1.0F - 2.0F * static_cast<float>(win_y) / static_cast<float>(height));
+}
+
+void onMouseClickCbk(GLFWwindow* window, int button, int action, int mods)
+{
+	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS)
+	{
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		const auto [x, y] = windowToNormCoord(xpos, ypos, window);
+		std::cout << std::format("Mouse clicked at x = {}, y = {}\n", x, y);
+	}
+}
+

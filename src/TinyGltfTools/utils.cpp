@@ -220,6 +220,8 @@ void traverseNode(const Content& content, const tinygltf::Node& node, std::vecto
 	}
 }
 
+
+
 glm::mat4 getNodeMVP(const Content& content, unsigned short id)
 {
 	const tinygltf::Node& node = content.m_model.nodes.at(id);

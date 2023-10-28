@@ -243,6 +243,19 @@ void Content::setup_mesh_data()
 
 }
 
+std::map<unsigned short, std::vector<glm::vec3>>& Content::getMeshToPositionsMap()
+{
+	if (m_meshToPositionMap.empty())
+	{
+		for (unsigned short i = 0; i < m_model.meshes.size(); i++)
+		{
+			m_meshToPositionMap[i] = getMeshPositions(*this, i);
+		}
+	}
+	return m_meshToPositionMap;
+}
+
+
 MeshDataBufferView getMeshAttributeData(const Content& content, const unsigned short meshIndex, const char* attributeName)
 {
 	const tinygltf::Model& model = content.m_model;
@@ -309,4 +322,13 @@ MeshDataBufferView::MeshDataBufferView(const unsigned char* rawData, size_t coun
 	{
 		m_stride = ComponentTypeByteSize(componentType) * getTypeSize(type);
 	}
+}
+
+
+
+
+
+float nearestZRayCast(float x, float y, const Content& content, int meshId)
+{
+
 }

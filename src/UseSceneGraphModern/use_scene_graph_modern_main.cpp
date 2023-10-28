@@ -12,7 +12,7 @@
 
 using namespace std::chrono_literals;
 
-std::map<unsigned short, std::vector<glm::vec3>> nodeToMeshPositionsMap;
+
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
@@ -46,6 +46,8 @@ int main()
 	ballTracker.setWindowSize(window_width, window_height);
 	ballTracker.registerWithGLFW(window);
 
+	//glfwSetMouseButtonCallback(window, onMouseClickCbk);
+
 	std::filesystem::path base_dir{ TOSTRING(PROJECT_INCLUDE_DIR) };
 	const std::filesystem::path model_path{ base_dir / ".." / "model/scene_graph_example" };
 	const std::filesystem::path model_gltf{ model_path / "scene_graph.gltf" };
@@ -55,11 +57,12 @@ int main()
 	scene_graph_content.setup_mesh_data();
 
 	
-	for (unsigned short i = 0; i < scene_graph_content.m_model.meshes.size(); i++)
-	{
-		nodeToMeshPositionsMap[i] = getMeshPositions(scene_graph_content, i);
-	}
-	const std::vector<glm::vec3> cubePoints = getMeshPositions(scene_graph_content, 0);
+	//for (unsigned short i = 0; i < scene_graph_content.m_model.meshes.size(); i++)
+	//{
+	//	nodeToMeshPositionsMap[i] = getMeshPositions(scene_graph_content, i);
+	//}
+	std::map<unsigned short, std::vector<glm::vec3>>& nodeToMeshPositionsMap = scene_graph_content.getMeshToPositionsMap();
+	//const std::vector<glm::vec3> cubePoints = getMeshPositions(scene_graph_content, 0);
 
 	reshapeFunc(window, window_width, window_height);
 

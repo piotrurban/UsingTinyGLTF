@@ -5,6 +5,8 @@
 #include <cassert>
 #include <iostream>
 
+extern std::map<unsigned short, std::vector<glm::vec3>> nodeToMeshPositionsMap;
+
 GLenum glCheckError_(const char* file, int line, GLenum errorCode)
 {
 	//GLenum errorCode;
@@ -183,4 +185,63 @@ unsigned char getTypeSize(int type)
 		assert(0);
 	}
 	return size;
+}
+
+void traverseModelMeshes(const Content& content)
+{
+	std::vector<std::string> nodePath{};
+	glm::mat4 mvp = glm::mat4(1.0);
+	for (const auto& node : content.m_model.nodes)
+	{
+		traverseNode(content, node, nodePath, mvp);
+	}
+}
+
+void traverseNode(const Content& content, const tinygltf::Node& node, std::vector<std::string> path, const glm::mat4& mvp)
+{
+	path.push_back(node.name);
+	std::cout << "Traverse nodes: " << node.name << "\n";
+	if (node.name == "Cube.001" && node.mesh >= 0)
+	{
+		std::cout << "mesh " << node.name << " positions:\n";
+		const auto& positions = nodeToMeshPositionsMap.at(node.mesh);
+		const glm::mat4 modelMVP = getContentMVP(content);
+		for (const glm::vec3& vertex : positions)
+		{
+			const glm::vec4 trafoVertex =  modelMVP * mvp * glm::vec4(vertex, 1.0F);
+			std::cout << std::format("vec {}, {}, {}\n", trafoVertex.x/trafoVertex.w, trafoVertex.y/trafoVertex.w, trafoVertex.z/trafoVertex.w);
+		}
+	}
+	for (int id : node.children)
+	{
+		const tinygltf::Node& childNode = content.m_model.nodes.at(id);
+		const glm::mat4 local_mvp{ getNodeMVP(content, id) };
+		traverseNode(content, childNode, path, mvp * glm::mat4(local_mvp));
+	}
+}
+
+glm::mat4 getNodeMVP(const Content& content, unsigned short id)
+{
+	const tinygltf::Node& node = content.m_model.nodes.at(id);
+	glm::dmat4 result{ glm::dmat4(1.0F) };
+	if (node.translation.size() == 3) {
+
+		result = glm::translate(result, glm::make_vec3(node.translation.data()));
+	}
+
+	if (node.rotation.size() == 4) {
+		double angleDegrees;
+		double axis[3];
+
+		QuatToAngleAxis(node.rotation, angleDegrees, axis);
+
+		glRotated(angleDegrees, axis[0], axis[1], axis[2]);
+		result = glm::rotate(result, angleDegrees * 3.1415926 / 180.0, glm::make_vec3(node.rotation.data()));
+	}
+
+	if (node.scale.size() == 3) {
+		glScaled(node.scale[0], node.scale[1], node.scale[2]);
+		result = glm::scale(result, glm::make_vec3(node.scale.data()));
+	}
+	return result;
 }

@@ -33,3 +33,7 @@ bool getPeriodicSignal(std::chrono::milliseconds period);
 glm::dmat4 getContentMVP(const Content& content);
 
 unsigned char getTypeSize(int type);
+
+void traverseModelMeshes(const Content& content);
+glm::mat4 getNodeMVP(const Content& content, unsigned short id);
+void traverseNode(const Content& content, const tinygltf::Node& node, std::vector<std::string> path, const glm::mat4& mvp);

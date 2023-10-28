@@ -12,6 +12,8 @@
 
 using namespace std::chrono_literals;
 
+std::map<unsigned short, std::vector<glm::vec3>> nodeToMeshPositionsMap;
+
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
@@ -52,6 +54,11 @@ int main()
 	Content scene_graph_content(model_gltf.string(), model_vert.string(), model_frag.string());
 	scene_graph_content.setup_mesh_data();
 
+	
+	for (unsigned short i = 0; i < scene_graph_content.m_model.meshes.size(); i++)
+	{
+		nodeToMeshPositionsMap[i] = getMeshPositions(scene_graph_content, i);
+	}
 	const std::vector<glm::vec3> cubePoints = getMeshPositions(scene_graph_content, 0);
 
 	reshapeFunc(window, window_width, window_height);
@@ -80,13 +87,15 @@ int main()
 
 		glEnable(GL_DEPTH_TEST);
 
-		draw_model(scene_graph_content);
 
 		if (std::chrono::steady_clock::now() - time > 2000ms)
 		{
 			time = std::chrono::steady_clock::now();
-			printAllMeshData(scene_graph_content);
+			//printAllMeshData(scene_graph_content);
+			traverseModelMeshes(scene_graph_content);
 		}
+		draw_model(scene_graph_content);
+		
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
 

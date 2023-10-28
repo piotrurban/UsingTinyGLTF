@@ -6,6 +6,7 @@
 #include <map>
 
 #include <glm/mat4x4.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 
 typedef struct {
@@ -49,3 +50,33 @@ public:
 	glm::dmat4 m_viewMat;
 	glm::dmat4 m_modelMat;
 };
+
+struct MeshDataBufferView
+{
+	MeshDataBufferView(char* rawData, unsigned long long stride, int type, int componentType);
+	const inline char* operator[](unsigned long long index) const
+	{
+		return m_rawData + index * m_stride;
+	}
+
+	char* m_rawData{ nullptr };
+	unsigned long long  m_stride;
+	int m_type;
+	int m_componentType;
+	static const MeshDataBufferView s_empty;
+};
+
+glm::vec3 getVec3(const MeshDataBufferView& dataView, unsigned long long index);
+
+const unsigned short getIndex(const MeshDataBufferView& dataView, unsigned long long index);
+
+MeshDataBufferView getMeshAttributeData(const Content& content, const unsigned short meshIndex, const char* attributeName);
+
+std::vector<glm::vec3> getMeshPositions(const Content& content, unsigned short meshIndex)
+{
+	const MeshDataBufferView indicesBuffer = getMeshAttributeData(content, meshIndex, "INDICES");
+	const MeshDataBufferView positionBuffer = getMeshAttributeData(content, meshIndex, "POSITION");
+	assert(indicesBuffer.m_type == TINYGLTF_TYPE_SCALAR && indicesBuffer.m_componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT
+		&& positionBuffer.m_type == TINYGLTF_TYPE_VEC3);
+
+}

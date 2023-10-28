@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+const MeshDataBufferView MeshDataBufferView::s_empty{ nullptr, 0U,0,0 };
+
 /// <summary>
 /// @brief class for storing content of a deserialized glTF m_model with shaders
 /// </summary>
@@ -220,7 +222,7 @@ void Content::setup_mesh_data()
 				}
 			}
 		}
-}
+	}
 #endif
 
 	glUseProgram(m_progId);
@@ -238,4 +240,53 @@ void Content::setup_mesh_data()
 	m_GLProgramState.uniforms["isCurvesLoc"] = isCurvesLoc;
 
 
+}
+
+MeshDataBufferView getMeshAttributeData(const Content& content, const unsigned short meshIndex, const char* attributeName)
+{
+	const tinygltf::Model& model = content.m_model;
+	if (model.meshes.empty())
+	{
+		return MeshDataBufferView::s_empty;
+	}
+
+	const tinygltf::Mesh& mesh = model.meshes.at(meshIndex);
+	//@TODO: enable multiple primitives?
+	const tinygltf::Primitive& primitive = mesh.primitives.at(0);
+	if (primitive.indices < 0)
+	{
+		return MeshDataBufferView::s_empty;
+	}
+
+	const int accessorIdx = (strcmp(attributeName, "INDICES") == 0) ? primitive.indices : primitive.attributes.at(attributeName);
+	const tinygltf::Accessor& accessor = model.accessors.at(accessorIdx);
+
+	const tinygltf::BufferView& bufferView = model.bufferViews.at(accessor.bufferView);
+	char* dataStart = (char*)model.buffers.at(bufferView.buffer).data.data() + bufferView.byteOffset + accessor.byteOffset;
+	return MeshDataBufferView{ dataStart, bufferView.byteStride, accessor.type,	accessor.componentType };
+}
+
+glm::vec3 getVec3(const MeshDataBufferView& dataView, unsigned long long index)
+{
+	assert(dataView.m_type == TINYGLTF_TYPE_VEC3);
+	return glm::make_vec3(dataView[index]);
+}
+
+const unsigned short getIndex(const MeshDataBufferView& dataView, unsigned long long index)
+{
+	assert(dataView.m_type == TINYGLTF_TYPE_SCALAR && dataView.m_componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT);
+	return *(reinterpret_cast<const unsigned short*>(dataView[index]));
+}
+
+MeshDataBufferView::MeshDataBufferView(char* rawData, unsigned long long stride, int type, int componentType)
+	:
+	m_rawData{ rawData },
+	m_stride{ stride },
+	m_type{ type },
+	m_componentType{ componentType }
+{
+	if (stride == 0)
+	{
+		m_stride = ComponentTypeByteSize(componentType) * getTypeSize(type);
+	}
 }

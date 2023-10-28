@@ -52,11 +52,12 @@ void get_mesh_data(Content& content, tinygltf::Mesh& mesh)
 					indices.data());
 				std::vector<glm::vec3> triangle_data(bufferSize / sizeof(float) / 3);
 				glGetNamedBufferSubData(bufferName, 0, bufferSize, triangle_data.data());
+				const glm::mat4 curr_mvp = getContentMVP(content);
 				std::cout << "triangle mesh data: NAME = " << mesh.name << ", SIZE = 3 * " << triangle_data.size() <<
 					", DATA: "
-					<< triangle_data[indices[0]]
+					<< curr_mvp * glm::vec4(triangle_data[indices[0]],1.0)
 					<< ", "
-					<< triangle_data[indices[1]]
+					<< curr_mvp * glm::vec4(triangle_data[indices[1]], 1.0)
 					<< "...\n";
 			}
 			else

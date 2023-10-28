@@ -53,8 +53,8 @@ int main()
 	scene_graph_content.setup_mesh_data();
 	reshapeFunc(window, window_width, window_height);
 
-	printNodeVertices(scene_graph_content);
-	printAllMeshData(scene_graph_content);
+	//printNodeVertices(scene_graph_content);
+	//printAllMeshData(scene_graph_content);
 
 
 	std::chrono::steady_clock::time_point time{ std::chrono::steady_clock::now() };

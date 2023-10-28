@@ -1,6 +1,7 @@
 #include "content_drawing.h"
 #include "utils.h"
 #include <glm/gtc/type_ptr.hpp>
+#include "get_mesh_data.h"
 
 void draw_model(Content& content) {
 	tinygltf::Model& model = content.m_model;
@@ -81,6 +82,10 @@ void draw_node(Content& content, const tinygltf::Node& node) {
 	if (node.mesh > -1) {
 		assert(node.mesh < model.meshes.size());
 		draw_mesh(content, model.meshes[node.mesh]);
+		if (getPeriodicSignal(5000ms))
+		{
+			get_mesh_data(content, model.meshes[node.mesh]);
+		}
 	}
 
 	// Draw child nodes.

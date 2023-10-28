@@ -146,3 +146,41 @@ void QuatToAngleAxis(const std::vector<double> quaternion,
 	axis[1] = qy / denom;
 	axis[2] = qz / denom;
 }
+
+bool getPeriodicSignal(std::chrono::milliseconds period)
+{
+	static auto last_time = std::chrono::steady_clock::now();
+	const auto now = std::chrono::steady_clock::now();
+	if (now - last_time > period)
+	{
+		last_time = now;
+		return true;
+	}
+	return false;
+}
+
+glm::dmat4 getContentMVP(const Content& content)
+{
+	return content.m_perspectiveMat * content.m_viewMat * content.m_modelMat;
+}
+
+unsigned char getTypeSize(int type)
+{
+	unsigned char size{};
+	if (type == TINYGLTF_TYPE_SCALAR) {
+		size = 1;
+	}
+	else if (type == TINYGLTF_TYPE_VEC2) {
+		size = 2;
+	}
+	else if (type == TINYGLTF_TYPE_VEC3) {
+		size = 3;
+	}
+	else if (type == TINYGLTF_TYPE_VEC4) {
+		size = 4;
+	}
+	else {
+		assert(0);
+	}
+	return size;
+}

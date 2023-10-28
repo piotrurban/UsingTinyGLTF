@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-const MeshDataBufferView MeshDataBufferView::s_empty{ nullptr, 0U,0,0 };
+const MeshDataBufferView MeshDataBufferView::s_empty{};
 
 /// <summary>
 /// @brief class for storing content of a deserialized glTF m_model with shaders
@@ -263,7 +263,7 @@ MeshDataBufferView getMeshAttributeData(const Content& content, const unsigned s
 
 	const tinygltf::BufferView& bufferView = model.bufferViews.at(accessor.bufferView);
 	char* dataStart = (char*)model.buffers.at(bufferView.buffer).data.data() + bufferView.byteOffset + accessor.byteOffset;
-	return MeshDataBufferView{ dataStart, bufferView.byteStride, accessor.type,	accessor.componentType };
+	return MeshDataBufferView{ dataStart, accessor.count, bufferView.byteStride, accessor.type,	accessor.componentType };
 }
 
 glm::vec3 getVec3(const MeshDataBufferView& dataView, unsigned long long index)
@@ -278,9 +278,25 @@ const unsigned short getIndex(const MeshDataBufferView& dataView, unsigned long 
 	return *(reinterpret_cast<const unsigned short*>(dataView[index]));
 }
 
-MeshDataBufferView::MeshDataBufferView(char* rawData, unsigned long long stride, int type, int componentType)
+std::vector<glm::vec3> getMeshPositions(const Content& content, unsigned short meshIndex)
+{
+	const MeshDataBufferView indicesBuffer = getMeshAttributeData(content, meshIndex, "INDICES");
+	const MeshDataBufferView positionBuffer = getMeshAttributeData(content, meshIndex, "POSITION");
+	assert(indicesBuffer.m_type == TINYGLTF_TYPE_SCALAR && indicesBuffer.m_componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT
+		&& positionBuffer.m_type == TINYGLTF_TYPE_VEC3);
+	size_t bufferSize = indicesBuffer.m_count;
+	std::vector<glm::vec3> result(bufferSize);
+	for (size_t i = 0; i < bufferSize; i++)
+	{
+		result[i] = getVec3(positionBuffer, getIndex(indicesBuffer, i));
+	}
+	return result;
+}
+
+MeshDataBufferView::MeshDataBufferView(char* rawData, size_t count, unsigned long long stride, int type, int componentType)
 	:
 	m_rawData{ rawData },
+	m_count{ count },
 	m_stride{ stride },
 	m_type{ type },
 	m_componentType{ componentType }

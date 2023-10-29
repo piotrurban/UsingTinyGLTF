@@ -90,9 +90,8 @@ glm::vec3 triangleZRayCast(const std::array<glm::vec3, 3>& triangle_verts, const
 		const auto pb = triangle_verts.at(1) - intersection_point;
 		const auto pc = triangle_verts.at(2) - intersection_point;
 
+		// for at least 2 vertices, 
 		if (glm::dot(glm::cross(pa,pb), glm::cross(pc,pb)) <0 && dot(glm::cross(pa,pb), glm::cross(pa,pc)) < 0)
-			//if ((glm::dot(triangle_verts.at(0) - intersection_point, triangle_verts.at(1) - intersection_point) > 0) &&
-			//	(glm::dot(triangle_verts.at(0) - intersection_point, triangle_verts.at(2) - intersection_point) > 0))
 		{
 			return intersection_point;
 		}

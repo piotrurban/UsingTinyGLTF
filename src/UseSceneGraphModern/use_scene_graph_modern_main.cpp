@@ -73,6 +73,7 @@ int main()
 
 	const auto corner = glm::vec4(1.0, 1.0, 1.0, 1.0);
 	
+	
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
@@ -95,6 +96,7 @@ int main()
 
 		if (std::chrono::steady_clock::now() - time > 2000ms)
 		{
+			dumpMVPNodeVertices(scene_graph_content, 0);
 			const auto pp_corner = persp * proj * corner;
 			time = std::chrono::steady_clock::now();
 			//printAllMeshData(scene_graph_content);

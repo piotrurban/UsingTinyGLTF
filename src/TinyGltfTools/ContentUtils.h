@@ -15,3 +15,9 @@ public:
 float nearestZRayCast(float x, float y, const Content& content, int meshId);
 
 const std::map<int, glm::mat4>& getNodeToMVPMap(const Content& content);
+
+void dumpMeshVertices(const Content& content, int meshId);
+
+std::vector<glm::vec3> computeMVPNodeVertices(const Content& content, int nodeId);
+
+void dumpMVPNodeVertices(const Content& content, int nodeId);

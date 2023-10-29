@@ -249,7 +249,7 @@ std::map<unsigned short, std::vector<glm::vec3>>& Content::getMeshToPositionsMap
 	{
 		for (unsigned short i = 0; i < m_model.meshes.size(); i++)
 		{
-			m_meshToPositionMap[i] = getMeshPositions(*this, i);
+			m_meshToPositionMap[i] = generateMeshPositions(*this, i);
 		}
 	}
 	return m_meshToPositionMap;
@@ -292,7 +292,7 @@ const unsigned short getIndex(const MeshDataBufferView& dataView, unsigned long 
 	return *(reinterpret_cast<const unsigned short*>(dataView[index]));
 }
 
-std::vector<glm::vec3> getMeshPositions(const Content& content, unsigned short meshIndex)
+std::vector<glm::vec3> generateMeshPositions(const Content& content, unsigned short meshIndex)
 {
 	const MeshDataBufferView indicesBuffer = getMeshAttributeData(content, meshIndex, "INDICES");
 	const MeshDataBufferView positionBuffer = getMeshAttributeData(content, meshIndex, "POSITION");
@@ -304,7 +304,7 @@ std::vector<glm::vec3> getMeshPositions(const Content& content, unsigned short m
 	{
 		const size_t index = getIndex(indicesBuffer, i);
 		const glm::vec3 vec = getVec3(positionBuffer, index);
-		std::cout << std::format("index: {}, vec: ( {}, {}, {} )\n", index, vec.x, vec.y, vec.z);
+		//std::cout << std::format("index: {}, vec: ( {}, {}, {} )\n", index, vec.x, vec.y, vec.z);
 		result[i] = getVec3(positionBuffer, getIndex(indicesBuffer, i));
 	}
 	return result;
@@ -314,17 +314,22 @@ std::map<unsigned short, std::vector<glm::vec3>>& getMeshToPositionsMap(const Co
 {
 	using MapT = std::map<unsigned short, std::vector<glm::vec3>>;
 	static std::map<size_t, MapT> contentMaps{};
+	// create the map if necessary
 	if (!contentMaps.contains((size_t)(&content)))
 	{
 		MapT& meshToPositionMap = contentMaps[(size_t)(&content)];
 		for (unsigned short i = 0; i < content.m_model.meshes.size(); i++)
 		{
-			meshToPositionMap[i] = getMeshPositions(content, i);
+			meshToPositionMap[i] = generateMeshPositions(content, i);
 		}
 	}
 
 	return contentMaps.at((size_t)(&content));
 }
+
+
+
+
 
 MeshDataBufferView::MeshDataBufferView(const unsigned char* rawData, size_t count, unsigned long long stride, int type, int componentType)
 	:

@@ -3,9 +3,11 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <iostream>
+#include <format>
 
 std::unique_ptr<BallTracker> BallTracker::s_instance{ nullptr };
-float BallTracker::s_camZ{ 3.0F };
+float BallTracker::s_camZ{ 4.0F };
 
 
 void BallTracker::init()
@@ -108,6 +110,7 @@ void BallTracker::implMotionFunc(GLFWwindow* window, double mouse_x, double mous
 		lookat[2] += transScale * (mouse_y - prevMouseY) / (float)height;
 	}
 
+	//std::cout << std::format("BallTracker: eye = {}, {}, {}\n", eye[0], eye[1], eye[2]);
 	// Update mouse point
 	prevMouseX = mouse_x;
 	prevMouseY = mouse_y;

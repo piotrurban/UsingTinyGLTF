@@ -19,6 +19,7 @@
 using namespace std::chrono_literals;
 using namespace std::placeholders;
 
+const float PI{ 3.1415926F };
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
@@ -36,7 +37,7 @@ int main()
 
 	GLFWwindow* window;
 	constexpr int window_width{ 800 };
-	constexpr int window_height{ 600 };
+	constexpr int window_height{ 800 };
 	window = glfwCreateWindow(window_width, window_height, "scene graph example", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
@@ -63,22 +64,15 @@ int main()
 	scene_graph_content.setup_mesh_data();
 	setCurrentContent(scene_graph_content);
 
-	
-	//for (unsigned short i = 0; i < scene_graph_content.m_model.meshes.size(); i++)
-	//{
-	//	nodeToMeshPositionsMap[i] = getMeshPositions(scene_graph_content, i);
-	//}
-	std::map<unsigned short, std::vector<glm::vec3>>& nodeToMeshPositionsMap = scene_graph_content.getMeshToPositionsMap();
-	//const std::vector<glm::vec3> cubePoints = getMeshPositions(scene_graph_content, 0);
-
 	reshapeFunc(window, window_width, window_height);
 
 	std::chrono::steady_clock::time_point time{ std::chrono::steady_clock::now() };
 
-	const glm::mat4 persp = glm::perspective(45.0f, (float)window_width / (float)window_height, 0.1f, 100.0f);
-	scene_graph_content.m_perspectiveMat = persp;
+	const glm::mat4 persp = glm::perspective(45.0f * PI/180.0F, (float)window_width / (float)window_height, 0.1f, 100.0f);
+	//scene_graph_content.m_perspectiveMat = persp;
 
-
+	const auto corner = glm::vec4(1.0, 1.0, 1.0, 1.0);
+	
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
@@ -101,6 +95,7 @@ int main()
 
 		if (std::chrono::steady_clock::now() - time > 2000ms)
 		{
+			const auto pp_corner = persp * proj * corner;
 			time = std::chrono::steady_clock::now();
 			//printAllMeshData(scene_graph_content);
 			//traverseModelMeshes(scene_graph_content);

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project(UseSceneGraphModernProject)
 
-add_executable(UseSceneGraphModern "use_scene_graph_modern_main.cpp")
+add_executable(UseSceneGraphModern "use_scene_graph_modern_main.cpp" "Handlers.h" "Handlers.cpp" "NodeVisitors.h" "NodeVisitors.cpp")
 
 target_include_directories(UseSceneGraphModern PRIVATE ${EXEC_INCLUDE_DIRS}
 glm::glm)

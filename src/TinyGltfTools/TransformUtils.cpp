@@ -134,3 +134,14 @@ void onMouseClickCbk(GLFWwindow* window, int button, int action, int mods)
 	}
 }
 
+bool isTriangleInViewport(const std::array<glm::vec3, 3>& triangle)
+{
+	for (const glm::vec3& vertex : triangle)
+	{
+		if (std::abs(vertex.x) <= 1.0F && std::abs(vertex.y) <= 1.0F)
+		{
+			return true;
+		}
+	}
+	return false;
+}

@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <chrono>
+#include <iostream>
 #include <Content.h>
 using namespace std::chrono_literals;
 

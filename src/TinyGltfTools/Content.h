@@ -82,3 +82,5 @@ const unsigned short getIndex(const MeshDataBufferView& dataView, unsigned long 
 MeshDataBufferView getMeshAttributeData(const Content& content, const unsigned short meshIndex, const char* attributeName);
 
 std::vector<glm::vec3> getMeshPositions(const Content& content, unsigned short meshIndex);
+
+std::map<unsigned short, std::vector<glm::vec3>>& getMeshToPositionsMap(const Content& content);

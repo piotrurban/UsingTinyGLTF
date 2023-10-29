@@ -310,6 +310,22 @@ std::vector<glm::vec3> getMeshPositions(const Content& content, unsigned short m
 	return result;
 }
 
+std::map<unsigned short, std::vector<glm::vec3>>& getMeshToPositionsMap(const Content& content)
+{
+	using MapT = std::map<unsigned short, std::vector<glm::vec3>>;
+	static std::map<size_t, MapT> contentMaps{};
+	if (!contentMaps.contains((size_t)(&content)))
+	{
+		MapT& meshToPositionMap = contentMaps[(size_t)(&content)];
+		for (unsigned short i = 0; i < content.m_model.meshes.size(); i++)
+		{
+			meshToPositionMap[i] = getMeshPositions(content, i);
+		}
+	}
+
+	return contentMaps.at((size_t)(&content));
+}
+
 MeshDataBufferView::MeshDataBufferView(const unsigned char* rawData, size_t count, unsigned long long stride, int type, int componentType)
 	:
 	m_rawData{ rawData },
@@ -322,13 +338,4 @@ MeshDataBufferView::MeshDataBufferView(const unsigned char* rawData, size_t coun
 	{
 		m_stride = ComponentTypeByteSize(componentType) * getTypeSize(type);
 	}
-}
-
-
-
-
-
-float nearestZRayCast(float x, float y, const Content& content, int meshId)
-{
-
 }

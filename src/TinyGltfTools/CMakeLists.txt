@@ -14,7 +14,7 @@ add_library(TinyGltfTools STATIC
 "tinygltf_implementation.cpp"
 "utils.h"
 "utils.cpp"
- "get_mesh_data.cpp" "get_mesh_data.h")
+ "get_mesh_data.cpp" "get_mesh_data.h" "ContentUtils.cpp" "ContentUtils.h" "TraverseContent.h" "TraverseContent.cpp")
 target_include_directories(TinyGltfTools PRIVATE
 ${GLEW_INCLUDE_DIR}
 ${GLFW3_INCLUDE_DIR}

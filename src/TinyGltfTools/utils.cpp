@@ -5,7 +5,6 @@
 #include <cassert>
 #include <iostream>
 
-extern std::map<unsigned short, std::vector<glm::vec3>> nodeToMeshPositionsMap;
 
 GLenum glCheckError_(const char* file, int line, GLenum errorCode)
 {
@@ -204,7 +203,7 @@ void traverseNode(const Content& content, const tinygltf::Node& node, std::vecto
 	if (node.name == "Cube.001" && node.mesh >= 0)
 	{
 		std::cout << "mesh " << node.name << " positions:\n";
-		const auto& positions = nodeToMeshPositionsMap.at(node.mesh);
+		const auto& positions = getMeshToPositionsMap(content).at(node.mesh);
 		const glm::mat4 modelMVP = getContentMVP(content);
 		for (const glm::vec3& vertex : positions)
 		{

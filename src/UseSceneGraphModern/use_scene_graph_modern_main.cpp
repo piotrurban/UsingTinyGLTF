@@ -1,18 +1,23 @@
 #include <gl_includes.h>
 #include <content_drawing.h>
 #include <BallTracker.h>
+#include "Handlers.h"
+#include "NodeVisitors.h"
+
 #include <utils.h>
 #include <TransformUtils.h>
+#include <ContentUtils.h>
 #include <get_mesh_data.h>
 
 #include <filesystem>
 #include <iostream>
 #include <chrono>
+#include <functional>
+
 #include <glm/gtc/matrix_transform.hpp>
 
 using namespace std::chrono_literals;
-
-
+using namespace std::placeholders;
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
@@ -47,6 +52,7 @@ int main()
 	ballTracker.registerWithGLFW(window);
 
 	//glfwSetMouseButtonCallback(window, onMouseClickCbk);
+	glfwSetMouseButtonCallback(window, onMouseClickRayCast);
 
 	std::filesystem::path base_dir{ TOSTRING(PROJECT_INCLUDE_DIR) };
 	const std::filesystem::path model_path{ base_dir / ".." / "model/scene_graph_example" };
@@ -55,6 +61,7 @@ int main()
 	const std::filesystem::path model_frag{ model_path / "../shader.frag" };
 	Content scene_graph_content(model_gltf.string(), model_vert.string(), model_frag.string());
 	scene_graph_content.setup_mesh_data();
+	setCurrentContent(scene_graph_content);
 
 	
 	//for (unsigned short i = 0; i < scene_graph_content.m_model.meshes.size(); i++)
@@ -68,8 +75,9 @@ int main()
 
 	std::chrono::steady_clock::time_point time{ std::chrono::steady_clock::now() };
 
-	const glm::mat4 persp = glm::perspective(45.0f, (float)window_width / (float)window_height, 0.1f, 1000.0f);
+	const glm::mat4 persp = glm::perspective(45.0f, (float)window_width / (float)window_height, 0.1f, 100.0f);
 	scene_graph_content.m_perspectiveMat = persp;
+
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -95,7 +103,7 @@ int main()
 		{
 			time = std::chrono::steady_clock::now();
 			//printAllMeshData(scene_graph_content);
-			traverseModelMeshes(scene_graph_content);
+			//traverseModelMeshes(scene_graph_content);
 		}
 		draw_model(scene_graph_content);
 		

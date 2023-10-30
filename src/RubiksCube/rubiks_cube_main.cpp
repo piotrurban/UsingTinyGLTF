@@ -51,7 +51,7 @@ int main()
 	Content rubiks_cube_content(model_gltf.string(), model_vert.string(), model_frag.string());
 	rubiks_cube_content.setup_mesh_data();
 	std::map<std::tuple<int, int, int>, unsigned short> coords_to_node_id{};
-	int currentId{ 0 };
+	int currentId{ 1 };
 	for (int x = -1; x < 2; x++)
 		for (int y = -1; y < 2; y++)
 			for (int z = -1; z < 2; z++)
@@ -62,7 +62,7 @@ int main()
 				const int new_mesh_id = rubiks_cube_content.m_model.meshes.size();
 				const int new_node_id = rubiks_cube_content.m_model.nodes.size();
 				new_node.mesh = new_mesh_id;
-				new_node.translation = std::vector<double>{ x * 1.5, y * 1.5, z * 1.5};
+				new_node.translation = std::vector<double>{ x * 1.5, y * 1.5, z * 1.5 };
 				rubiks_cube_content.m_model.meshes.push_back(new_mesh);
 				rubiks_cube_content.m_model.nodes.push_back(new_node);
 				rubiks_cube_content.m_model.scenes.at(0).nodes.push_back(new_node_id);
@@ -72,9 +72,26 @@ int main()
 	const glm::mat4 persp = glm::perspective(45.0f * 3.1415926F / 180.0F, (float)window_width / (float)window_height, 0.1f, 100.0f);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+	float angle = 0.0F;
+	float delta = 0.05F;
 	while (!glfwWindowShouldClose(window))
 	{
+		angle += delta;
+		glm::quat rotZQuat = glm::angleAxis(glm::radians(delta), glm::vec3(0.0F, 0.0F, 1.0F));
+		std::vector<double> rotZQuatAsVector{ rotZQuat.x, rotZQuat.y, rotZQuat.z, rotZQuat.w };
+		for (auto& coordNode : coords_to_node_id)
+		{
+			const auto& [x, y, z] = coordNode.first;
+			if (z == -1)
+			{
+				glm::vec3 transl = glm::make_vec3(rubiks_cube_content.m_model.nodes[coordNode.second].translation.data());
+				transl = rotZQuat * transl;
+				rubiks_cube_content.m_model.nodes[coordNode.second].translation = { transl.x, transl.y, transl.z };
+				//glm::vec4 rotat = glm::make_vec4(rubiks_cube_content.m_model.nodes[coordNode.second].rotation.data());
+				glm::quat rotatQ = glm::angleAxis(glm::radians(angle), glm::vec3(0.0F, 0.0F, 1.0F));
+				rubiks_cube_content.m_model.nodes[coordNode.second].rotation = { rotatQ.x, rotatQ.y, rotatQ.z, rotatQ.w };
+			}
+		}
 		ballTracker.setCamera();
 		const glm::mat4 proj = ballTracker.getProjectionMat();
 		const glm::mat4 camera = ballTracker.getModelMat();

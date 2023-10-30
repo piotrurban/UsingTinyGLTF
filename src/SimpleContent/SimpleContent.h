@@ -19,6 +19,9 @@ public:
 	void setMV(const glm::mat4& mv);
 	void draw();
 
+	static const std::filesystem::path s_defaultVertexShader;
+	static const std::filesystem::path s_defaultFragmentShader;
+	static const std::filesystem::path s_circleFragmentShader;
 private:
 	void setupVertices();
 	void loadShaders();

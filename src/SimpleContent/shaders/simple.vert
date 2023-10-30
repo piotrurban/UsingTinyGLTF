@@ -18,6 +18,6 @@ void main(void)
 	gl_Position = p;
 	vec4 nn = gl_ModelViewMatrixInverseTranspose * vec4(normalize(in_normal), 0);
 	normal = nn.xyz;
-	coord = p.xy;
+	coord = in_vertex.xy;
 	texcoord = in_texcoord;
 }

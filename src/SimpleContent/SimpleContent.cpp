@@ -3,6 +3,11 @@
 #include <fstream>
 #include <filesystem>
 #include <iostream>
+namespace fs = std::filesystem;
+
+const fs::path SimpleContent::s_defaultVertexShader{ fs::path{__FILE__}.parent_path() / "shaders/simple.vert" };
+const fs::path SimpleContent::s_defaultFragmentShader{ fs::path{__FILE__}.parent_path() / "shaders/simple.frag" };
+const fs::path SimpleContent::s_circleFragmentShader{ fs::path{__FILE__}.parent_path() / "shaders/simple_circle.frag" };
 
 SimpleContent::SimpleContent(const std::vector<glm::vec3>& vertices, const std::vector<unsigned short>& indices, GLenum mode,
 	const std::optional<std::filesystem::path> vertexShaderPath,
@@ -45,7 +50,7 @@ void SimpleContent::setupVertices()
 void SimpleContent::loadShaders()
 {
 	const std::filesystem::path vertexShaderPath = m_vertexShaderPath ? *m_vertexShaderPath : std::filesystem::path{ __FILE__ }.parent_path() / "shaders/simple.vert";
-	const std::filesystem::path fragmentShaderPath = m_fragmentShaderPath ? *m_fragmentShaderPath : std::filesystem::path{ __FILE__ }.parent_path() / "shaders/simple.frag";
+	const std::filesystem::path fragmentShaderPath = m_fragmentShaderPath ? *m_fragmentShaderPath : std::filesystem::path{ __FILE__ }.parent_path() / "shaders/simple_circle.frag";
 	std::ifstream vertexIFS{ vertexShaderPath, std::ios::binary | std::ios::in };
 	if (!vertexIFS.good())
 	{

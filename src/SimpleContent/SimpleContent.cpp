@@ -4,9 +4,24 @@
 #include <filesystem>
 #include <iostream>
 
-void SimpleContent::setupVertices(const std::vector<glm::vec3>& vertices, const std::vector<unsigned short>& indices)
+SimpleContent::SimpleContent(const std::vector<glm::vec3>& vertices, const std::vector<unsigned short>& indices, GLenum mode,
+	const std::optional<std::filesystem::path> vertexShaderPath,
+	const std::optional<std::filesystem::path> fragmentShaderPath)
+	: m_vertices{ vertices }
+	, m_indices{ indices }
+	, m_mode {mode}
+	, m_vertexShaderPath{ vertexShaderPath }
+	, m_fragmentShaderPath{ fragmentShaderPath }
+	, m_vertexBuffer{ 0 }
+	, m_indicesBuffer{ 0 }
+	, m_prog{ 0 }
 {
-	m_vertices = vertices;
+	setupVertices();
+	loadShaders();
+}
+
+void SimpleContent::setupVertices()
+{
 
 	glGenBuffers(1, &m_vertexBuffer);
 	CheckErrors("gen vertex buffer");
@@ -16,7 +31,7 @@ void SimpleContent::setupVertices(const std::vector<glm::vec3>& vertices, const 
 	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * 3 * sizeof(float), glm::value_ptr(m_vertices.at(0)), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	m_indices = indices;
+
 	glGenBuffers(1, &m_indicesBuffer);
 	CheckErrors("gen indices buffer");
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indicesBuffer);
@@ -29,8 +44,8 @@ void SimpleContent::setupVertices(const std::vector<glm::vec3>& vertices, const 
 
 void SimpleContent::loadShaders()
 {
-	const std::filesystem::path vertexShaderPath = std::filesystem::path{ __FILE__ }.parent_path() / "shaders/simple.vert";
-	const std::filesystem::path fragmentShaderPath = std::filesystem::path{ __FILE__ }.parent_path() / "shaders/simple.frag";
+	const std::filesystem::path vertexShaderPath = m_vertexShaderPath ? *m_vertexShaderPath : std::filesystem::path{ __FILE__ }.parent_path() / "shaders/simple.vert";
+	const std::filesystem::path fragmentShaderPath = m_fragmentShaderPath ? *m_fragmentShaderPath : std::filesystem::path{ __FILE__ }.parent_path() / "shaders/simple.frag";
 	std::ifstream vertexIFS{ vertexShaderPath, std::ios::binary | std::ios::in };
 	if (!vertexIFS.good())
 	{
@@ -118,7 +133,7 @@ void SimpleContent::draw()
 	glEnableVertexAttribArray(posLoc);
 	CheckErrors("enable vertex attrib 0");
 
-	glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_SHORT, nullptr);
+	glDrawElements(m_mode, m_indices.size(), GL_UNSIGNED_SHORT, nullptr);
 	CheckErrors("draw elements");
 
 	glDisableVertexAttribArray(posLoc);

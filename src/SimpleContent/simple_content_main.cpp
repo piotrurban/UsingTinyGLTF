@@ -1,6 +1,9 @@
 #include "SimpleContent.h"
 #include "utils.h"
 #include "GLMUtils.h"
+#include "SimpleContentFactory.h"
+#include <generated_model/models.h>
+
 #include <iostream>
 
 int main()
@@ -27,15 +30,19 @@ int main()
 
 	const std::vector<glm::vec3> triangleVerts = { {0.0F, 0.0F, 0.0F}, {1.0F, 0.0F, 0.0F}, {0.0F, 1.0F, 0.0F} };
 	const std::vector<unsigned short> indices = { 0,1,2 };
-	SimpleContent sc{ triangleVerts, indices, GL_TRIANGLES, SimpleContent::s_defaultVertexShader, SimpleContent::s_circleFragmentShader };
+	SimpleContent sc{ triangleVerts, indices, GL_TRIANGLES, SimpleContent::s_defaultVertexShader, SimpleContent::s_circleFragmentShader,
+		{"u_radius"} };
 	const glm::mat4 perspective = glm::perspective(45.0F * 3.1415926F / 180.0F, (float)windowWidth / (float)windowHeight, 0.1F, 100.0F);
 	const glm::mat4 worldview = glm::lookAt(glm::vec3(0.0F, 0.0F, 3.0F), glm::vec3(0.0F, 0.0F, 0.0F), glm::vec3(0.0F, 1.0F, 0.0F));
 	sc.setMV(perspective * worldview);
+	sc.setUniform("u_radius", 0.43f);
 	
 	const std::vector<glm::vec3> flatTriangle = { { -0.25F, -0.25F, 0.0F}, {0.25F, -0.25F, 0.0F}, {0.0F, 0.3F, 0.0F} };
 	const std::vector<unsigned short> flatIndices = { 0,1,2 };
-	SimpleContent scflat{ flatTriangle, flatIndices, GL_LINE_LOOP };
+	SimpleContent scflat{ flatTriangle, flatIndices, GL_TRIANGLES};
 	scflat.setMV(glm::mat4(1.0F));
+
+	SimpleContent sc3 = getSimpleContent(SimpleContentType::CIRCLE);
 
 	glViewport(0, 0, windowWidth, windowHeight);
 	CheckErrors("viewport");
@@ -57,9 +64,11 @@ int main()
 		glEnable(GL_DEPTH_TEST);
 
 		shift += 0.0001F;
-		sc.setMV(perspective * worldview * glm::translate(glm::mat4(1.0), glm::vec3(shift, shift, 0.0F)));
+		//sc.setMV(perspective * worldview * glm::translate(glm::mat4(1.0), glm::vec3(shift, shift, 0.0F)));
+		sc.setUniform("u_radius", 1.0 - shift);
 		sc.draw();
 		scflat.draw();
+		sc3.draw();
 
 		glFlush();
 		glfwSwapBuffers(window);

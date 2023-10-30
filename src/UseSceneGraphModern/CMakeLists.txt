@@ -9,6 +9,7 @@ glm::glm)
 
 target_link_libraries ( UseSceneGraphModern
   TinyGltfTools
+  SimpleContent
   ${EXEC_LIBS}
 )
 add_dependencies(UseSceneGraphModern CopyModels glm::glm)

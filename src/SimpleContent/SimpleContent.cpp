@@ -3,7 +3,10 @@
 #include <fstream>
 #include <filesystem>
 #include <iostream>
+#include <string>
+
 namespace fs = std::filesystem;
+using namespace std::literals;
 
 const fs::path SimpleContent::s_defaultVertexShader{ fs::path{__FILE__}.parent_path() / "shaders/simple.vert" };
 const fs::path SimpleContent::s_defaultFragmentShader{ fs::path{__FILE__}.parent_path() / "shaders/simple.frag" };
@@ -11,16 +14,22 @@ const fs::path SimpleContent::s_circleFragmentShader{ fs::path{__FILE__}.parent_
 
 SimpleContent::SimpleContent(const std::vector<glm::vec3>& vertices, const std::vector<unsigned short>& indices, GLenum mode,
 	const std::optional<std::filesystem::path> vertexShaderPath,
-	const std::optional<std::filesystem::path> fragmentShaderPath)
+	const std::optional<std::filesystem::path> fragmentShaderPath,
+	const std::unordered_set<std::string>& uniforms)
 	: m_vertices{ vertices }
 	, m_indices{ indices }
-	, m_mode {mode}
+	, m_mode{ mode }
 	, m_vertexShaderPath{ vertexShaderPath }
 	, m_fragmentShaderPath{ fragmentShaderPath }
 	, m_vertexBuffer{ 0 }
 	, m_indicesBuffer{ 0 }
 	, m_prog{ 0 }
+	, m_uniformMap{}
 {
+	for (const std::string& uniform : uniforms)
+	{
+		m_uniformMap[uniform] = 0.0F;
+	}
 	setupVertices();
 	loadShaders();
 }
@@ -49,8 +58,8 @@ void SimpleContent::setupVertices()
 
 void SimpleContent::loadShaders()
 {
-	const std::filesystem::path vertexShaderPath = m_vertexShaderPath ? *m_vertexShaderPath : std::filesystem::path{ __FILE__ }.parent_path() / "shaders/simple.vert";
-	const std::filesystem::path fragmentShaderPath = m_fragmentShaderPath ? *m_fragmentShaderPath : std::filesystem::path{ __FILE__ }.parent_path() / "shaders/simple_circle.frag";
+	const std::filesystem::path vertexShaderPath = m_vertexShaderPath ? *m_vertexShaderPath : s_defaultVertexShader;
+	const std::filesystem::path fragmentShaderPath = m_fragmentShaderPath ? *m_fragmentShaderPath : s_defaultFragmentShader;
 	std::ifstream vertexIFS{ vertexShaderPath, std::ios::binary | std::ios::in };
 	if (!vertexIFS.good())
 	{
@@ -72,6 +81,14 @@ void SimpleContent::loadShaders()
 	CheckErrors("vertex source");
 	glCompileShader(vertexShader);
 	CheckErrors("compile vertex shader");
+	GLint success;
+	GLchar info[512];
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(vertexShader, 512, nullptr, info);
+		std::cerr << "Vertex shader compilation failed. Log:\n" << info << std::endl;
+	}
 
 	std::ifstream fragmentIFS{ fragmentShaderPath, std::ios::binary | std::ios::in };
 	if (!fragmentIFS.good())
@@ -94,6 +111,12 @@ void SimpleContent::loadShaders()
 	CheckErrors("fragment source");
 	glCompileShader(fragmentShader);
 	CheckErrors("compile fragment shader");
+	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(fragmentShader, 512, nullptr, info);
+		std::cerr << "Fragment shader compilation failed. Log:\n" << info << std::endl;
+	}
 
 	m_prog = glCreateProgram();
 	CheckErrors("create program");
@@ -106,11 +129,26 @@ void SimpleContent::loadShaders()
 	GLint val;
 	glGetProgramiv(m_prog, GL_LINK_STATUS, &val);
 	assert(val == GL_TRUE && "failed to link shader");
+
+	for (const auto& [uniform, value] : m_uniformMap)
+	{
+		m_uniformLoc[uniform] = glGetUniformLocation(m_prog, uniform.c_str());
+		CheckErrors(std::string("get uniform loc ") + uniform);
+		if (m_uniformLoc.at(uniform) == -1)
+		{
+			std::cerr << std::format("WARNING: uniform {} was not located in shaders.\n", uniform);
+		}
+	}
 }
 
 void SimpleContent::setMV(const glm::mat4& mv)
 {
 	m_mv = mv;
+}
+
+void SimpleContent::setUniform(const std::string& name, const float value)
+{
+	m_uniformMap[name] = value;
 }
 
 void SimpleContent::draw()
@@ -121,6 +159,19 @@ void SimpleContent::draw()
 	CheckErrors("get mvp loc");
 	glUniformMatrix4fv(u_MVP, 1, GL_FALSE, glm::value_ptr(m_mv));
 	CheckErrors("set mvp");
+
+	/*GLuint u_radius = glGetUniformLocation(m_prog, "u_radius");
+	CheckErrors("get radius loc");
+	if (u_radius != -1)
+	{
+		glUniform1f(u_radius, 0.3F);
+	}*/
+
+	for (const auto& [uniform, loc] : m_uniformLoc)
+	{
+		glUniform1f(loc, m_uniformMap.at(uniform));
+		CheckErrors("set uniform "s + uniform);
+	}
 
 	GLuint vertArray;
 	glGenVertexArrays(1, &vertArray);

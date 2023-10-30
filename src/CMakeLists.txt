@@ -24,6 +24,7 @@ ${GLEW_INCLUDE_DIR}
 ${GLFW3_INCLUDE_DIR}
 ${CMAKE_CURRENT_SOURCE_DIR}
 ${CMAKE_CURRENT_SOURCE_DIR}/TinyGltfTools
+${CMAKE_BINARY_DIR}
 )
 add_compile_definitions(PROJECT_INCLUDE_DIR=${PROJECT_INCLUDE_DIR})
 
@@ -32,3 +33,4 @@ add_subdirectory(TinyGltfTools)
 add_subdirectory(UseSceneGraph)
 add_subdirectory(Tetrahedron)
 add_subdirectory(UseSceneGraphModern)
+add_subdirectory(RubiksCube)

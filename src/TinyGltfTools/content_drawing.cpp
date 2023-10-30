@@ -3,8 +3,12 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "get_mesh_data.h"
 
+#include <string>
+using namespace std::literals;
+
 void draw_model(Content& content) {
 	tinygltf::Model& model = content.m_model;
+	glUseProgram(content.m_progId);
 #if 0
 	std::map<std::string, tinygltf::Mesh>::const_iterator it(scene.meshes.begin());
 	std::map<std::string, tinygltf::Mesh>::const_iterator itEnd(scene.meshes.end());
@@ -50,7 +54,7 @@ void draw_node(Content& content, const tinygltf::Node& node) {
 			QuatToAngleAxis(node.rotation, angleDegrees, axis);
 
 			glRotated(angleDegrees, axis[0], axis[1], axis[2]);
-			content.m_modelMat = glm::rotate(content.m_modelMat, angleDegrees*3.1415926/180.0, glm::make_vec3(node.rotation.data()));
+			content.m_modelMat = glm::rotate(content.m_modelMat, angleDegrees * 3.1415926 / 180.0, glm::make_vec3(node.rotation.data()));
 		}
 
 		if (node.scale.size() == 3) {
@@ -65,9 +69,25 @@ void draw_node(Content& content, const tinygltf::Node& node) {
 	if (u_MVP != -1)
 	{
 		const auto mvp = content.m_perspectiveMat * content.m_viewMat * content.m_modelMat;
-		glUniformMatrix4fv(u_MVP, 1, GL_FALSE, glm::value_ptr(glm::mat4(content.m_perspectiveMat* content.m_viewMat*content.m_modelMat)));
+		glUniformMatrix4fv(u_MVP, 1, GL_FALSE, glm::value_ptr(glm::mat4(content.m_perspectiveMat * content.m_viewMat * content.m_modelMat)));
 		CheckErrors("set u_MVP");
 	}
+
+	GLuint u_highlight = glGetUniformLocation(content.m_progId, "u_highlight");
+	CheckErrors("get u_highlight loc");
+	if (u_highlight != -1)
+	{
+		if (node.name == "Cube"s)
+		{
+			glUniform1f(u_highlight, true);
+		}
+		else
+		{
+			glUniform1f(u_highlight, false);
+		}
+		CheckErrors("set u_highlight");
+	}
+
 	/*if (u_MVInvTrans != -1)
 	{
 		glUniformMatrix4dv(u_MVInvTrans, 16, GL_FALSE, glm::value_ptr(glm::transpose(glm::inverse(content.m_viewMat * content.m_modelMat))));
@@ -81,11 +101,12 @@ void draw_node(Content& content, const tinygltf::Node& node) {
 	// DrawCurves(scene, it->second);
 	if (node.mesh > -1) {
 		assert(node.mesh < model.meshes.size());
+		std::cout << "draw mesh " << node.mesh << std::endl;
 		draw_mesh(content, model.meshes[node.mesh]);
-		if (getPeriodicSignal(5000ms))
+		/*if (getPeriodicSignal(5000ms))
 		{
 			get_mesh_data(content, model.meshes[node.mesh]);
-		}
+		}*/
 	}
 
 	// Draw child nodes.
@@ -100,6 +121,7 @@ void draw_node(Content& content, const tinygltf::Node& node) {
 void draw_mesh(Content& content, tinygltf::Mesh& mesh)
 {
 	tinygltf::Model& model = content.m_model;
+	
 	//// Skip curves primitive.
  // if (gCurvesMesh.find(mesh.name) != gCurvesMesh.end()) {
  //  return;

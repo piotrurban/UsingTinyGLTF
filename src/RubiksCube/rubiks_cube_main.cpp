@@ -1,0 +1,96 @@
+#include <iostream>
+
+#include <gl_includes.h>
+
+#include <BallTracker.h>
+#include <Content.h>
+#include <ContentUtils.h>
+#include <content_drawing.h>
+#include <GLMUtils.h>
+#include <utils.h>
+
+#include <glm/matrix.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <generated_model/models.h>
+
+int main()
+{
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+
+	if (!glfwInit())
+	{
+		std::cout << "glfwInit failed!\n";
+		exit(1);
+	}
+
+	GLFWwindow* window;
+	constexpr int window_width{ 800 };
+	constexpr int window_height{ 800 };
+	window = glfwCreateWindow(window_width, window_height, "scene graph example", nullptr, nullptr);
+	glfwMakeContextCurrent(window);
+
+	if (glewInit() != GLEW_OK)
+	{
+		std::cout << "glewInit failed!\n";
+		exit(2);
+	}
+
+	BallTracker& ballTracker = BallTracker::getInstance();
+	ballTracker.init();
+	ballTracker.setWindowSize(window_width, window_height);
+	ballTracker.registerWithGLFW(window);
+
+	//glfwSetMouseButtonCallback(window, onMouseClickCbk);
+	//glfwSetMouseButtonCallback(window, onMouseClickRayCast);
+
+	const std::filesystem::path model_path{ pathToModels };
+	const std::filesystem::path model_gltf{ model_path / "triangle.gltf" };
+	const std::filesystem::path model_vert{ model_path / "shader_modern.vert" };
+	const std::filesystem::path model_frag{ model_path / "shader_modern.frag" };
+	Content rubiks_cube_content(model_gltf.string(), model_vert.string(), model_frag.string());
+	rubiks_cube_content.setup_mesh_data();
+	std::map<std::tuple<int, int, int>, unsigned short> coords_to_node_id{};
+	int currentId{ 0 };
+	for (int x = -1; x < 2; x++)
+		for (int y = -1; y < 2; y++)
+			for (int z = -1; z < 2; z++)
+			{
+				coords_to_node_id[std::make_tuple(x, y, z)] = currentId;
+				auto new_node = rubiks_cube_content.m_model.nodes.at(0);
+				auto new_mesh = rubiks_cube_content.m_model.meshes.at(0);
+				const int new_mesh_id = rubiks_cube_content.m_model.meshes.size();
+				const int new_node_id = rubiks_cube_content.m_model.nodes.size();
+				new_node.mesh = new_mesh_id;
+				new_node.translation = std::vector<double>{ x * 1.5, y * 1.5, z * 1.5};
+				rubiks_cube_content.m_model.meshes.push_back(new_mesh);
+				rubiks_cube_content.m_model.nodes.push_back(new_node);
+				rubiks_cube_content.m_model.scenes.at(0).nodes.push_back(new_node_id);
+				currentId++;
+			}
+
+	const glm::mat4 persp = glm::perspective(45.0f * 3.1415926F / 180.0F, (float)window_width / (float)window_height, 0.1f, 100.0f);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	while (!glfwWindowShouldClose(window))
+	{
+		ballTracker.setCamera();
+		const glm::mat4 proj = ballTracker.getProjectionMat();
+		const glm::mat4 camera = ballTracker.getModelMat();
+		rubiks_cube_content.m_perspectiveMat = glm::dmat4(persp * proj);
+		rubiks_cube_content.m_viewMat = camera;
+		rubiks_cube_content.m_modelMat = glm::mat4(1.0);
+		glfwPollEvents();
+
+		glClearColor(0.0F, 0.0F, 0.3F, 1.0F);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		CheckErrors("clear");
+		glEnable(GL_DEPTH_TEST);
+
+		draw_model(rubiks_cube_content);
+
+		glFlush();
+		glfwSwapBuffers(window);
+	}
+}

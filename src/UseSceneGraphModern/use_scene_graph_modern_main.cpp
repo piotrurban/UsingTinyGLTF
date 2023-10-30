@@ -9,12 +9,16 @@
 #include <ContentUtils.h>
 #include <get_mesh_data.h>
 
+#include "SimpleContent/SimpleContentFactory.h"
+
 #include <filesystem>
 #include <iostream>
 #include <chrono>
 #include <functional>
 
 #include <glm/gtc/matrix_transform.hpp>
+
+#include <generated_model/models.h>
 
 using namespace std::chrono_literals;
 using namespace std::placeholders;
@@ -55,12 +59,23 @@ int main()
 	//glfwSetMouseButtonCallback(window, onMouseClickCbk);
 	glfwSetMouseButtonCallback(window, onMouseClickRayCast);
 
-	std::filesystem::path base_dir{ TOSTRING(PROJECT_INCLUDE_DIR) };
-	const std::filesystem::path model_path{ base_dir / ".." / "model/scene_graph_example" };
-	const std::filesystem::path model_gltf{ model_path / "scene_graph.gltf" };
-	const std::filesystem::path model_vert{ model_path / "../shader_modern.vert" };
-	const std::filesystem::path model_frag{ model_path / "../shader.frag" };
+	const std::filesystem::path model_path{ pathToModels };
+	const std::filesystem::path model_gltf{ model_path / "scene_graph_example"/ "scene_graph.gltf" };
+	const std::filesystem::path model_vert{ model_path / "shader_modern.vert" };
+	const std::filesystem::path model_frag{ model_path / "shader_modern.frag" };
 	Content scene_graph_content(model_gltf.string(), model_vert.string(), model_frag.string());
+
+	// copy one node
+	auto new_node = scene_graph_content.m_model.nodes.at(0);
+	auto new_mesh = scene_graph_content.m_model.meshes.at(0);
+	scene_graph_content.m_model.meshes.push_back(new_mesh);
+	new_node.name = "CopyCube";
+	new_node.mesh = scene_graph_content.m_model.meshes.size() - 1;
+	new_node.translation = std::vector<double>{ 1.5, 0.0, 1.0 };
+	new_node.scale = std::vector<double>{ 0.5, 1.0, 1.0 };
+	scene_graph_content.m_model.nodes.push_back(new_node);
+	scene_graph_content.m_model.scenes.at(0).nodes.push_back(6);
+	
 	scene_graph_content.setup_mesh_data();
 	setCurrentContent(scene_graph_content);
 
@@ -73,7 +88,12 @@ int main()
 
 	const auto corner = glm::vec4(1.0, 1.0, 1.0, 1.0);
 	
-	
+	SimpleContent smallCircle = getSimpleContent(SimpleContentType::CIRCLE);
+	setCurrentMousePointerIcon(smallCircle);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
@@ -103,7 +123,8 @@ int main()
 			//traverseModelMeshes(scene_graph_content);
 		}
 		draw_model(scene_graph_content);
-		
+		smallCircle.draw();
+
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
 

@@ -8,6 +8,8 @@
 
 #include <filesystem>
 #include <optional>
+#include <unordered_map>
+#include <unordered_set>
 
 class SimpleContent
 {
@@ -15,8 +17,10 @@ public:
 	SimpleContent(const std::vector<glm::vec3>& vertices, const std::vector<unsigned short>& indices,
 		GLenum mode = GL_TRIANGLES,
 		const std::optional<std::filesystem::path> vertexShaderPath = {},
-		const std::optional<std::filesystem::path> fragmentShaderPath = {});
+		const std::optional<std::filesystem::path> fragmentShaderPath = {},
+		const std::unordered_set<std::string>& uniforms = {});
 	void setMV(const glm::mat4& mv);
+	void setUniform(const std::string& name, const float value);
 	void draw();
 
 	static const std::filesystem::path s_defaultVertexShader;
@@ -35,4 +39,7 @@ private:
 	GLuint m_vertexBuffer{  };
 	GLuint m_indicesBuffer;
 	GLuint m_prog;
+
+	std::unordered_map<std::string, float> m_uniformMap;
+	std::unordered_map<std::string, GLuint> m_uniformLoc;
 };

@@ -12,7 +12,7 @@ public:
 	std::map<int, glm::mat4> m_nodeToMVPMap;
 };
 
-float nearestZRayCast(float x, float y, const Content& content, int meshId);
+float ZRayCast(float x, float y, const Content& content, int meshId);
 
 const std::map<int, glm::mat4>& getNodeToMVPMap(const Content& content);
 

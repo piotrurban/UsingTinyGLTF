@@ -26,10 +26,6 @@ void draw_model(Content& content) {
 }
 // Hierarchically draw nodes
 void draw_node(Content& content, const tinygltf::Node& node) {
-	if (node.mesh > 0)
-	{
-		return;
-	}
 	const glm::mat4 saveModelMat = content.m_modelMat;
 	// Apply xform
 	tinygltf::Model& model = content.m_model;

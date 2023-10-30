@@ -8,7 +8,7 @@
 
 using namespace std::placeholders;
 
-float nearestZRayCast(float x, float y, const Content& content, int nodeId)
+float ZRayCast(float x, float y, const Content& content, int nodeId)
 {
 	const int meshId = content.m_model.nodes.at(nodeId).mesh;
 	const std::vector<glm::vec3>& positions = getMeshToPositionsMap(content).at(meshId);

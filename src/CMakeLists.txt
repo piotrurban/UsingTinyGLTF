@@ -15,6 +15,7 @@ list(APPEND EXEC_LIBS  ${GLEW_LIBRARIES}
   ${OPENGL_glu_LIBRARY}
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
+  TinyGltfTools
   glm::glm
 )
 
@@ -26,6 +27,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/TinyGltfTools
 )
 add_compile_definitions(PROJECT_INCLUDE_DIR=${PROJECT_INCLUDE_DIR})
 
+add_subdirectory(SimpleContent)
 add_subdirectory(TinyGltfTools)
 add_subdirectory(UseSceneGraph)
 add_subdirectory(Tetrahedron)

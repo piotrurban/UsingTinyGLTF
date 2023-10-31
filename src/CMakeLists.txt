@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 
 include_directories([=[C:\Apps\tinygltf-release]=])
-message(STATUS "in src current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
-message(STATUS "in src current_source_dir: ${CMAKE_CURRENT_SOURCE_DIR}")
+message(VERBOSE "in src current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
+message(VERBOSE "in src current_source_dir: ${CMAKE_CURRENT_SOURCE_DIR}")
 set(PROJECT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 find_package(GLFW3 REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -26,6 +26,9 @@ ${CMAKE_CURRENT_SOURCE_DIR}
 ${CMAKE_CURRENT_SOURCE_DIR}/TinyGltfTools
 ${CMAKE_BINARY_DIR}
 )
+
+include("ProjectHelper.cmake")
+
 add_compile_definitions(PROJECT_INCLUDE_DIR=${PROJECT_INCLUDE_DIR})
 
 add_subdirectory(SimpleContent)

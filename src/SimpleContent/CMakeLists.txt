@@ -7,4 +7,4 @@ add_library(SimpleContent STATIC "SimpleContent.h" "SimpleContent.cpp" "SimpleCo
 target_link_libraries(SimpleContent PRIVATE ${EXEC_LIBS})
 target_include_directories(SimpleContent PRIVATE ${EXEC_INCLUDE_DIRS})
 
-ADD_TINYGLTF_PROJECT(SimpleContentExample "simple_content_main.cpp" )
+ADD_TINYGLTF_PROJECT_N(SimpleContentExample SOURCES "simple_content_main.cpp" )

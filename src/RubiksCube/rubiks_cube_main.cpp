@@ -46,8 +46,8 @@ int main()
 
 	const std::filesystem::path model_path{ pathToModels };
 	const std::filesystem::path model_gltf{ model_path / "triangle.gltf" };
-	const std::filesystem::path model_vert{ model_path / "shader_modern.vert" };
-	const std::filesystem::path model_frag{ model_path / "shader_modern.frag" };
+	const std::filesystem::path model_vert{ model_path / "shader_rubik.vert" };
+	const std::filesystem::path model_frag{ model_path / "shader_rubik.frag" };
 	Content rubiks_cube_content(model_gltf.string(), model_vert.string(), model_frag.string());
 	rubiks_cube_content.setup_mesh_data();
 	std::map<std::tuple<int, int, int>, unsigned short> coords_to_node_id{};
@@ -71,7 +71,9 @@ int main()
 
 	const glm::mat4 persp = glm::perspective(45.0f * 3.1415926F / 180.0F, (float)window_width / (float)window_height, 0.1f, 100.0f);
 	glEnable(GL_BLEND);
+	CheckErrors("blend");
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	CheckErrors("alpha");
 	float angle = 0.0F;
 	float delta = 0.05F;
 	while (!glfwWindowShouldClose(window))

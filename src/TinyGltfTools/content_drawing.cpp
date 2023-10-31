@@ -101,7 +101,6 @@ void draw_node(Content& content, const tinygltf::Node& node) {
 	// DrawCurves(scene, it->second);
 	if (node.mesh > -1) {
 		assert(node.mesh < model.meshes.size());
-		std::cout << "draw mesh " << node.mesh << std::endl;
 		draw_mesh(content, model.meshes[node.mesh]);
 		/*if (getPeriodicSignal(5000ms))
 		{

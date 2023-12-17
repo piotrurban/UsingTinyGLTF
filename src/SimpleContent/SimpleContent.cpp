@@ -11,11 +11,14 @@ using namespace std::literals;
 const fs::path SimpleContent::s_defaultVertexShader{ fs::path{__FILE__}.parent_path() / "shaders/simple.vert" };
 const fs::path SimpleContent::s_defaultFragmentShader{ fs::path{__FILE__}.parent_path() / "shaders/simple.frag" };
 const fs::path SimpleContent::s_circleFragmentShader{ fs::path{__FILE__}.parent_path() / "shaders/simple_circle.frag" };
+const fs::path SimpleContent::s_distanceFragmentShader{ fs::path{__FILE__}.parent_path() / "shaders/simple_distance.frag" };
 
 SimpleContent::SimpleContent(const std::vector<glm::vec3>& vertices, const std::vector<unsigned short>& indices, GLenum mode,
 	const std::optional<std::filesystem::path> vertexShaderPath,
 	const std::optional<std::filesystem::path> fragmentShaderPath,
-	const std::unordered_set<std::string>& uniforms)
+	const std::unordered_set<std::string>& uniforms,
+	const std::unordered_set<std::string>& anyUniforms
+)
 	: m_vertices{ vertices }
 	, m_indices{ indices }
 	, m_mode{ mode }
@@ -23,12 +26,19 @@ SimpleContent::SimpleContent(const std::vector<glm::vec3>& vertices, const std::
 	, m_fragmentShaderPath{ fragmentShaderPath }
 	, m_vertexBuffer{ 0 }
 	, m_indicesBuffer{ 0 }
+	, m_vertexArray{ 0 }
+	, m_indexArray{ 0 }
 	, m_prog{ 0 }
 	, m_uniformMap{}
+	, m_anyUniformMap{}
 {
 	for (const std::string& uniform : uniforms)
 	{
 		m_uniformMap[uniform] = 0.0F;
+	}
+	for (const std::string& anyUniform : anyUniforms)
+	{
+		m_anyUniformMap[anyUniform] = std::any{};
 	}
 	setupVertices();
 	loadShaders();
@@ -54,6 +64,9 @@ void SimpleContent::setupVertices()
 	CheckErrors("indices buffer data");
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	CheckErrors("unbind element buffer");
+
+	glGenVertexArrays(1, &m_vertexArray);
+	CheckErrors("gen vert array");
 }
 
 void SimpleContent::loadShaders()
@@ -82,11 +95,11 @@ void SimpleContent::loadShaders()
 	glCompileShader(vertexShader);
 	CheckErrors("compile vertex shader");
 	GLint success;
-	GLchar info[512];
+	GLchar info[10000];
 	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
-		glGetShaderInfoLog(vertexShader, 512, nullptr, info);
+		glGetShaderInfoLog(vertexShader, 10000, nullptr, info);
 		std::cerr << "Vertex shader compilation failed. Log:\n" << info << std::endl;
 	}
 
@@ -114,7 +127,7 @@ void SimpleContent::loadShaders()
 	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
-		glGetShaderInfoLog(fragmentShader, 512, nullptr, info);
+		glGetShaderInfoLog(fragmentShader, sizeof(info), nullptr, info);
 		std::cerr << "Fragment shader compilation failed. Log:\n" << info << std::endl;
 	}
 
@@ -130,7 +143,16 @@ void SimpleContent::loadShaders()
 	glGetProgramiv(m_prog, GL_LINK_STATUS, &val);
 	assert(val == GL_TRUE && "failed to link shader");
 
-	for (const auto& [uniform, value] : m_uniformMap)
+	for (const auto& [uniform, _] : m_uniformMap)
+	{
+		m_uniformLoc[uniform] = glGetUniformLocation(m_prog, uniform.c_str());
+		CheckErrors(std::string("get uniform loc ") + uniform);
+		if (m_uniformLoc.at(uniform) == -1)
+		{
+			std::cerr << std::format("WARNING: uniform {} was not located in shaders.\n", uniform);
+		}
+	}
+	for (const auto& [uniform, _] : m_anyUniformMap)
 	{
 		m_uniformLoc[uniform] = glGetUniformLocation(m_prog, uniform.c_str());
 		CheckErrors(std::string("get uniform loc ") + uniform);
@@ -151,6 +173,11 @@ void SimpleContent::setUniform(const std::string& name, const float value)
 	m_uniformMap[name] = value;
 }
 
+void SimpleContent::setUniform(const std::string& name, const std::any value)
+{
+	m_anyUniformMap[name] = value;
+}
+
 void SimpleContent::draw()
 {
 	glUseProgram(m_prog);
@@ -167,16 +194,27 @@ void SimpleContent::draw()
 		glUniform1f(u_radius, 0.3F);
 	}*/
 
-	for (const auto& [uniform, loc] : m_uniformLoc)
+	for (const auto& [uniform, value] : m_uniformMap)
+	{
+		glUniform1f(m_uniformLoc.at(uniform), value);
+		CheckErrors("set uniform "s + uniform);
+	}
+	/*for (const auto& [uniform, loc] : m_uniformLoc)
 	{
 		glUniform1f(loc, m_uniformMap.at(uniform));
 		CheckErrors("set uniform "s + uniform);
+	}*/
+
+	for (const auto& [uniform, value] : m_anyUniformMap)
+	{
+		if (value.type() == typeid(glm::mat4))
+		{
+			glUniformMatrix4fv(m_uniformLoc.at(uniform), 1, GL_FALSE, glm::value_ptr(std::any_cast<glm::mat4>(value)));
+			CheckErrors("set any uniform (mat4) "s + uniform);
+		}
 	}
 
-	GLuint vertArray;
-	glGenVertexArrays(1, &vertArray);
-	CheckErrors("gen vert array");
-	glBindVertexArray(vertArray);
+	glBindVertexArray(m_vertexArray);
 	CheckErrors("bind vert array");
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
 	CheckErrors("bind vert buffer");
@@ -196,3 +234,13 @@ void SimpleContent::draw()
 	CheckErrors("disable vertex attrib 0");
 }
 
+SimpleContent::~SimpleContent()
+{
+}
+
+void SimpleContent::cleanup()
+{
+	glDeleteBuffers(1, &m_vertexBuffer);
+	glDeleteBuffers(1, &m_indicesBuffer);
+	glDeleteVertexArrays(1, &m_vertexArray);
+}

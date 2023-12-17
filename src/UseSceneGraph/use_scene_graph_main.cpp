@@ -87,5 +87,6 @@ int main()
 		glFlush();
 		glfwSwapBuffers(window);
 	}
+	glfwDestroyWindow(window);
 	glfwTerminate();
 }

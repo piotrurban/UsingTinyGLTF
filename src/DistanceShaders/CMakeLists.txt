@@ -1,0 +1,4 @@
+cmake_minimum_required(VERSION 3.18)
+
+ADD_TINYGLTF_PROJECT_N(DistanceShaders SOURCES distance_shaders_main.cpp)
+target_link_libraries(DistanceShaders PRIVATE SimpleContent)

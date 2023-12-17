@@ -10,6 +10,7 @@
 #include <optional>
 #include <unordered_map>
 #include <unordered_set>
+#include <any>
 
 class SimpleContent
 {
@@ -18,14 +19,21 @@ public:
 		GLenum mode = GL_TRIANGLES,
 		const std::optional<std::filesystem::path> vertexShaderPath = {},
 		const std::optional<std::filesystem::path> fragmentShaderPath = {},
-		const std::unordered_set<std::string>& uniforms = {});
+		const std::unordered_set<std::string>& uniforms = {},
+		const std::unordered_set<std::string>& anyUniforms = {});
+	virtual ~SimpleContent();
+
 	void setMV(const glm::mat4& mv);
 	void setUniform(const std::string& name, const float value);
+	void setUniform(const std::string& name, const std::any value);
 	void draw();
+	void cleanup();
 
+	const glm::mat4& getMV() { return m_mv; }
 	static const std::filesystem::path s_defaultVertexShader;
 	static const std::filesystem::path s_defaultFragmentShader;
 	static const std::filesystem::path s_circleFragmentShader;
+	static const std::filesystem::path s_distanceFragmentShader;
 private:
 	void setupVertices();
 	void loadShaders();
@@ -38,8 +46,11 @@ private:
 	glm::mat4 m_mv;
 	GLuint m_vertexBuffer{  };
 	GLuint m_indicesBuffer;
+	GLuint m_vertexArray;
+	GLuint m_indexArray;
 	GLuint m_prog;
 
 	std::unordered_map<std::string, float> m_uniformMap;
+	std::unordered_map<std::string, std::any> m_anyUniformMap;
 	std::unordered_map<std::string, GLuint> m_uniformLoc;
 };

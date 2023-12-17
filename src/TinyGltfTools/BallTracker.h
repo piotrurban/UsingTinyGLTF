@@ -22,6 +22,9 @@ public:
 	glm::mat4 getProjectionMat();
 	const glm::mat4 getModelMat();
 
+	glm::vec3 getDirection();
+	bool m_updated;
+
 private:
 	void implMotionFunc(GLFWwindow* window, double mouse_x, double mouse_y);
 
@@ -37,4 +40,7 @@ private:
 	float height{ 768.0F };
 };
 
-
+inline float(&BallTracker::getCurrQuat())[4]
+{
+	return curr_quat;
+}

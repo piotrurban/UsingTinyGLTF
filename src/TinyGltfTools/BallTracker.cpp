@@ -7,7 +7,7 @@
 #include <format>
 
 std::unique_ptr<BallTracker> BallTracker::s_instance{ nullptr };
-float BallTracker::s_camZ{ 4.0F };
+float BallTracker::s_camZ{ 6.0F };
 
 
 void BallTracker::init()
@@ -52,11 +52,6 @@ void BallTracker::motionFunc(GLFWwindow* window, double mouse_x, double mouse_y)
 	BallTracker::getInstance().implMotionFunc(window, mouse_x, mouse_y);
 }
 
-inline float(&BallTracker::getCurrQuat())[4]
-{
-	return curr_quat;
-}
-
 void BallTracker::setCamera()
 {
 	GLfloat mat[4][4];
@@ -81,6 +76,11 @@ const glm::mat4 BallTracker::getModelMat()
 	GLfloat mat[4][4];
 	build_rotmatrix(mat, curr_quat);
 	return glm::make_mat4(&mat[0][0]);
+}
+
+glm::vec3 BallTracker::getDirection()
+{
+	return glm::vec3(lookat[0] - eye[0], lookat[1] - eye[1], lookat[2] - eye[2]);
 }
 
 void BallTracker::implMotionFunc(GLFWwindow* window, double mouse_x, double mouse_y) {
@@ -114,4 +114,5 @@ void BallTracker::implMotionFunc(GLFWwindow* window, double mouse_x, double mous
 	// Update mouse point
 	prevMouseX = mouse_x;
 	prevMouseY = mouse_y;
+	m_updated = true;
 }

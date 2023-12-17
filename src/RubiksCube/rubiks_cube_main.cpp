@@ -45,7 +45,7 @@ int main()
 	//glfwSetMouseButtonCallback(window, onMouseClickRayCast);
 
 	const std::filesystem::path model_path{ pathToModels };
-	const std::filesystem::path model_gltf{ model_path / "triangle.gltf" };
+	const std::filesystem::path model_gltf{ model_path / "textured_cube/textured_cube.gltf" };
 	const std::filesystem::path model_vert{ model_path / "shader_rubik.vert" };
 	const std::filesystem::path model_frag{ model_path / "shader_rubik.frag" };
 	Content rubiks_cube_content(model_gltf.string(), model_vert.string(), model_frag.string());
@@ -62,7 +62,7 @@ int main()
 				const int new_mesh_id = rubiks_cube_content.m_model.meshes.size();
 				const int new_node_id = rubiks_cube_content.m_model.nodes.size();
 				new_node.mesh = new_mesh_id;
-				new_node.translation = std::vector<double>{ x * 1.5, y * 1.5, z * 1.5 };
+				new_node.translation = std::vector<double>{ x * 2.5, y * 2.5, z * 2.5 };
 				rubiks_cube_content.m_model.meshes.push_back(new_mesh);
 				rubiks_cube_content.m_model.nodes.push_back(new_node);
 				rubiks_cube_content.m_model.scenes.at(0).nodes.push_back(new_node_id);
@@ -94,7 +94,7 @@ int main()
 				rubiks_cube_content.m_model.nodes[coordNode.second].rotation = { rotatQ.x, rotatQ.y, rotatQ.z, rotatQ.w };
 			}
 		}
-		ballTracker.setCamera();
+		//ballTracker.setCamera();
 		const glm::mat4 proj = ballTracker.getProjectionMat();
 		const glm::mat4 camera = ballTracker.getModelMat();
 		rubiks_cube_content.m_perspectiveMat = glm::dmat4(persp * proj);

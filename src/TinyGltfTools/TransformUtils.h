@@ -49,4 +49,20 @@ struct std::formatter<glm::vec3> {
 	}
 };
 
+template<>
+struct std::formatter<glm::mat4> {
+	constexpr auto parse(std::format_parse_context& ctx) {
+		return ctx.end();
+	}
+
+	template<class FormatContext>
+	auto format(glm::mat4 value, FormatContext& ctx) const -> decltype(ctx.out()) {
+		return format_to(ctx.out(), "mat4 ( {}, {}, {}, {} \n {}, {}, {}, {} \n {}, {}, {}, {} \n {}, {}, {}, {} )\n",
+			value[0][0], value[0][1], value[0][2], value[0][3],
+			value[1][0], value[1][1], value[1][2], value[1][3],
+			value[2][0], value[2][1], value[2][2], value[2][3],
+			value[3][0], value[3][1], value[3][2], value[3][3]);
+	}
+};
+
 bool isTriangleInViewport(const std::array<glm::vec3, 3>& triangle);

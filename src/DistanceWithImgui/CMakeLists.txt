@@ -1,0 +1,4 @@
+cmake_minimum_required(VERSION 3.18)
+
+ADD_TINYGLTF_PROJECT_N(DistanceShadersWithImgui SOURCES distance_with_imgui.cpp shader_control.cpp shader_control.h)
+target_link_libraries(DistanceShadersWithImgui PRIVATE SimpleContent ImGui)

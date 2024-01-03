@@ -56,7 +56,7 @@ void SimpleContentBuilder::setConfig(const SimpleContentConfig& config)
 SimpleContent SimpleContentBuilder::build()
 {
 	SimpleContent content = SimpleContent(m_config.m_vertices, m_config.m_indices, m_config.m_mode, m_config.m_vertexShaderPath, m_config.m_fragmentShaderPath,
-		m_config.m_uniforms, m_config.m_anyUniforms);
+		m_config.m_texturePath, m_config.m_uniforms, m_config.m_anyUniforms);
 	content.setMV(m_config.m_MVDefault);
 	for (const auto& [uniform, value] : m_config.m_uniformDefaults)
 	{
@@ -78,6 +78,11 @@ void SimpleContentBuilder::setVertexShaderPath(const fs::path& vertexShaderPath)
 void SimpleContentBuilder::setFragmentShaderPath(const fs::path& fragmentShaderPath)
 {
 	m_config.m_fragmentShaderPath = fragmentShaderPath;
+}
+
+void SimpleContentBuilder::setTexturePath(const fs::path& texturePath)
+{
+	m_config.m_texturePath = texturePath;
 }
 
 void SimpleContentBuilder::setVertices(const std::vector<glm::vec3>& vertices)

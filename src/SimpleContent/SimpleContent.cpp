@@ -1,4 +1,6 @@
 #include "SimpleContent.h"
+#include <stb_image.h>
+
 #include "utils.h"
 #include <fstream>
 #include <filesystem>
@@ -16,6 +18,7 @@ const fs::path SimpleContent::s_distanceFragmentShader{ fs::path{__FILE__}.paren
 SimpleContent::SimpleContent(const std::vector<glm::vec3>& vertices, const std::vector<unsigned short>& indices, GLenum mode,
 	const std::optional<std::filesystem::path> vertexShaderPath,
 	const std::optional<std::filesystem::path> fragmentShaderPath,
+	const std::optional<std::filesystem::path> texturePath,
 	const std::unordered_set<std::string>& uniforms,
 	const std::unordered_set<std::string>& anyUniforms
 )
@@ -24,13 +27,16 @@ SimpleContent::SimpleContent(const std::vector<glm::vec3>& vertices, const std::
 	, m_mode{ mode }
 	, m_vertexShaderPath{ vertexShaderPath }
 	, m_fragmentShaderPath{ fragmentShaderPath }
+	, m_texturePath{ texturePath }
 	, m_vertexBuffer{ 0 }
 	, m_indicesBuffer{ 0 }
 	, m_vertexArray{ 0 }
 	, m_indexArray{ 0 }
+	, m_tex{ 0 }
 	, m_prog{ 0 }
 	, m_uniformMap{}
 	, m_anyUniformMap{}
+	, m_uniformTextureSamplerLoc{ -1 }
 {
 	for (const std::string& uniform : uniforms)
 	{
@@ -67,6 +73,31 @@ void SimpleContent::setupVertices()
 
 	glGenVertexArrays(1, &m_vertexArray);
 	CheckErrors("gen vert array");
+
+	if (m_texturePath && m_texturePath != "")
+	{
+		glGenTextures(1, &m_tex);
+		CheckErrors("gen textures");
+		unsigned char* tex_data{ nullptr };
+		int x, y, n;
+		tex_data = stbi_load(m_texturePath.value().string().c_str(), &x, &y, &n, 0);
+		if (tex_data)
+		{
+			glBindTexture(GL_TEXTURE_2D, m_tex);
+			CheckErrors("bind 2Dtex");
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data);
+			CheckErrors("glTexImage2D");
+			glGenerateMipmap(GL_TEXTURE_2D);
+			CheckErrors("gen mipmap");
+			glBindTexture(GL_TEXTURE_2D, 0);
+			CheckErrors("unbind tex2D");
+			stbi_image_free(tex_data);
+		}
+	}
 }
 
 void SimpleContent::loadShaders()
@@ -161,6 +192,7 @@ void SimpleContent::loadShaders()
 			std::cerr << std::format("WARNING: uniform {} was not located in shaders.\n", uniform);
 		}
 	}
+	m_uniformTextureSamplerLoc = glGetUniformLocation(m_prog, "u_textureSampler");
 }
 
 void SimpleContent::setMV(const glm::mat4& mv)
@@ -212,8 +244,22 @@ void SimpleContent::draw()
 			glUniformMatrix4fv(m_uniformLoc.at(uniform), 1, GL_FALSE, glm::value_ptr(std::any_cast<glm::mat4>(value)));
 			CheckErrors("set any uniform (mat4) "s + uniform);
 		}
+		else if (value.type() == typeid(glm::vec3))
+		{
+			glUniform3fv(m_uniformLoc.at(uniform), 1, glm::value_ptr(std::any_cast<glm::vec3>(value)));
+			CheckErrors("set any uniform (vec3"s + uniform);
+		}
+		
 	}
 
+	if (m_uniformTextureSamplerLoc != -1)
+	{
+		glUniform1i(m_uniformTextureSamplerLoc, 0);
+		CheckErrors("set texture uniform");
+		glActiveTexture(GL_TEXTURE0);
+		CheckErrors("active tex");
+		glBindTexture(GL_TEXTURE_2D, m_tex);
+	}
 	glBindVertexArray(m_vertexArray);
 	CheckErrors("bind vert array");
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);

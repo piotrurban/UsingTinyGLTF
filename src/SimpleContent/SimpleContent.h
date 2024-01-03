@@ -19,6 +19,7 @@ public:
 		GLenum mode = GL_TRIANGLES,
 		const std::optional<std::filesystem::path> vertexShaderPath = {},
 		const std::optional<std::filesystem::path> fragmentShaderPath = {},
+		const std::optional<std::filesystem::path> texturePath = {},
 		const std::unordered_set<std::string>& uniforms = {},
 		const std::unordered_set<std::string>& anyUniforms = {});
 	virtual ~SimpleContent();
@@ -43,14 +44,17 @@ private:
 	GLenum m_mode;
 	std::optional<std::filesystem::path> m_vertexShaderPath;
 	std::optional<std::filesystem::path> m_fragmentShaderPath;
+	std::optional<std::filesystem::path> m_texturePath;
 	glm::mat4 m_mv;
 	GLuint m_vertexBuffer{  };
 	GLuint m_indicesBuffer;
 	GLuint m_vertexArray;
 	GLuint m_indexArray;
+	GLuint m_tex;
 	GLuint m_prog;
 
 	std::unordered_map<std::string, float> m_uniformMap;
 	std::unordered_map<std::string, std::any> m_anyUniformMap;
 	std::unordered_map<std::string, GLuint> m_uniformLoc;
+	GLint m_uniformTextureSamplerLoc;
 };

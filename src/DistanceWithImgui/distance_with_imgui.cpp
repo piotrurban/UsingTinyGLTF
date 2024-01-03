@@ -1,6 +1,9 @@
 #include <iostream>
 
 #include <gl_includes.h>
+#include "imgui.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
 
 #include <BallTracker.h>
 #include <Content.h>
@@ -11,11 +14,22 @@
 #include <GLMUtils.h>
 #include <GLFWUtils.h>
 #include <utils.h>
+
+#include "shader_control.h"
+
 #include <format>
 
 #include <glm/matrix.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <generated_model/models.h>
+
+// Make the UI compact because there are so many fields
+static void PushStyleCompact()
+{
+	ImGuiStyle& style = ImGui::GetStyle();
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, (float)(int)(style.FramePadding.y * 0.60f)));
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(style.ItemSpacing.x, (float)(int)(style.ItemSpacing.y * 0.60f)));
+}
 
 int main()
 {
@@ -34,6 +48,16 @@ int main()
 	constexpr int window_height{ 1800 };
 	window = glfwCreateWindow(window_width, window_height, "scene graph example", nullptr, nullptr);
 	windowHUD = glfwCreateWindow(window_width / 3, window_height / 3, "HUD window", nullptr, nullptr);
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	//io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
+
+	
+	
 	registerResizeCallback(window);
 	registerResizeCallback(windowHUD);
 	glfwMakeContextCurrent(window);
@@ -59,6 +83,7 @@ int main()
 	builder.setTexturePath(pathToModels / "cyclope.png");
 	builder.setUniforms({ "u_maxCount", "u_cameraZ" });
 	builder.addAnyUniform("u_InverseMVP");
+	builder.addAnyUniform("u_diffuse");
 
 	SimpleContent distance_content = builder.build();
 
@@ -69,9 +94,12 @@ int main()
 	glfwMakeContextCurrent(window);
 	glViewport(0, 0, window_width, window_height);
 	CheckErrors("viewport");
-	
+
 	glfwMakeContextCurrent(windowHUD);
-	glViewport(0, 0, window_width/3, window_height/3);
+	// Setup Platform/Renderer backends
+	ImGui_ImplGlfw_InitForOpenGL(windowHUD, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+	ImGui_ImplOpenGL3_Init("#version 450");
+	glViewport(0, 0, window_width / 3, window_height / 3);
 	CheckErrors("viewport");
 
 	//const glm::vec3 v0 = perspectiveDivide3(sc.m_mv * glm::vec4(triangleVerts.at(0),1));
@@ -95,6 +123,7 @@ int main()
 		const glm::mat4 camera = ballTracker.getModelMat();
 		distance_content.setMV(glm::dmat4(camera));
 		distance_content.setUniform("u_InverseMVP", glm::inverse(camera));
+		distance_content.setUniform("u_diffuse", glm::make_vec3(ShaderController::shaderData.diffuse));
 		distance_content.setUniform("u_maxCount", maxRaymarchingSteps);
 		distance_content.setUniform("u_cameraZ", cameraZ);
 		//if (ballTracker.m_updated)
@@ -140,9 +169,39 @@ int main()
 		glEnable(GL_DEPTH_TEST);
 
 		hud_content.draw();
+
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		ImGui::SetNextWindowPos(ImVec2(0, 0));
+		if (!ImGui::Begin("Shader uniforms"))
+		{
+			ImGui::End();
+		}
+		else
+		{
+			ShaderController::displayControls();
+			ImGui::Separator();
+			PushStyleCompact();
+			ImGui::PushItemWidth(ImGui::GetFontSize() * 20);
+			ImGui::DragFloat("Shader uniform cameraZ", &cameraZ);
+			ImGui::PopItemWidth();
+			ImGui::DragFloat("Shader uniform RaymarchingSteps", &maxRaymarchingSteps);
+			ImGui::PopStyleVar(2);
+			ImGui::End();
+		}
+		ImGui::ShowDemoWindow();
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 		glfwSwapBuffers(windowHUD);
 		glFlush();
 	}
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+
+	ImGui::DestroyContext();
 	distance_content.cleanup();
 	hud_content.cleanup();
 	glfwDestroyWindow(window);

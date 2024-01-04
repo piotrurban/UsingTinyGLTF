@@ -13,7 +13,7 @@ struct SimpleContentConfig
 	GLenum m_mode{GL_TRIANGLES};
 	std::unordered_set<std::string> m_uniforms{};
 	std::unordered_map<std::string, float> m_uniformDefaults{};
-	std::unordered_set<std::string> m_anyUniforms{};
+	std::unordered_map<std::string, std::any> m_anyUniforms{};
 	glm::mat4 m_MVDefault{ glm::mat4(1.0) };
 };
 
@@ -41,6 +41,7 @@ public:
 	void setVertices(const std::vector<glm::vec3>& vertices);
 	void setIndices(std::vector<unsigned short>& indices);
 	void setUniforms(const std::unordered_set<std::string>& uniforms);
+	template<class T>
 	void addAnyUniform(const std::string& name);
 
 	SimpleContent build();
@@ -48,3 +49,9 @@ public:
 	SimpleContentConfig m_config{};
 
 };
+
+template<class T>
+void SimpleContentBuilder::addAnyUniform(const std::string& name)
+{
+	m_config.m_anyUniforms[name] = T{};
+}

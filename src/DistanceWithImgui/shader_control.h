@@ -1,4 +1,5 @@
 #include "imgui.h"
+#include <SimpleContent/SimpleContent.h>
 namespace ShaderController
 {
 	struct ShaderData
@@ -8,4 +9,5 @@ namespace ShaderController
 	};
 	extern ShaderData shaderData;
 	void displayControls();
+	void displaySimpleContentControls(SimpleContent& content);
 }

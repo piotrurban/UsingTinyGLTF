@@ -21,7 +21,7 @@ public:
 		const std::optional<std::filesystem::path> fragmentShaderPath = {},
 		const std::optional<std::filesystem::path> texturePath = {},
 		const std::unordered_set<std::string>& uniforms = {},
-		const std::unordered_set<std::string>& anyUniforms = {});
+		const std::unordered_map<std::string, std::any>& anyUniforms = {});
 	virtual ~SimpleContent();
 
 	void setMV(const glm::mat4& mv);
@@ -38,6 +38,8 @@ public:
 private:
 	void setupVertices();
 	void loadShaders();
+	std::vector<std::pair<std::string, GLenum>>  getShaderUniforms();
+	void setAnyUniformsFromShaderCode();
 
 	std::vector<glm::vec3> m_vertices;
 	std::vector<unsigned short> m_indices;
@@ -53,8 +55,10 @@ private:
 	GLuint m_tex;
 	GLuint m_prog;
 
+public:
 	std::unordered_map<std::string, float> m_uniformMap;
 	std::unordered_map<std::string, std::any> m_anyUniformMap;
 	std::unordered_map<std::string, GLuint> m_uniformLoc;
+	std::vector<std::pair<std::string, GLenum>> m_uniforms;
 	GLint m_uniformTextureSamplerLoc;
 };

@@ -100,7 +100,3 @@ void SimpleContentBuilder::setUniforms(const std::unordered_set<std::string>& un
 	m_config.m_uniforms = uniforms;
 }
 
-void SimpleContentBuilder::addAnyUniform(const std::string& name)
-{
-	m_config.m_anyUniforms.insert(name);
-}

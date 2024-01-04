@@ -20,7 +20,7 @@ SimpleContent::SimpleContent(const std::vector<glm::vec3>& vertices, const std::
 	const std::optional<std::filesystem::path> fragmentShaderPath,
 	const std::optional<std::filesystem::path> texturePath,
 	const std::unordered_set<std::string>& uniforms,
-	const std::unordered_set<std::string>& anyUniforms
+	const std::unordered_map<std::string, std::any>& anyUniforms
 )
 	: m_vertices{ vertices }
 	, m_indices{ indices }
@@ -35,16 +35,12 @@ SimpleContent::SimpleContent(const std::vector<glm::vec3>& vertices, const std::
 	, m_tex{ 0 }
 	, m_prog{ 0 }
 	, m_uniformMap{}
-	, m_anyUniformMap{}
+	, m_anyUniformMap{ anyUniforms }
 	, m_uniformTextureSamplerLoc{ -1 }
 {
 	for (const std::string& uniform : uniforms)
 	{
 		m_uniformMap[uniform] = 0.0F;
-	}
-	for (const std::string& anyUniform : anyUniforms)
-	{
-		m_anyUniformMap[anyUniform] = std::any{};
 	}
 	setupVertices();
 	loadShaders();
@@ -174,6 +170,9 @@ void SimpleContent::loadShaders()
 	glGetProgramiv(m_prog, GL_LINK_STATUS, &val);
 	assert(val == GL_TRUE && "failed to link shader");
 
+	m_uniforms = getShaderUniforms();
+	setAnyUniformsFromShaderCode();
+
 	for (const auto& [uniform, _] : m_uniformMap)
 	{
 		m_uniformLoc[uniform] = glGetUniformLocation(m_prog, uniform.c_str());
@@ -231,25 +230,32 @@ void SimpleContent::draw()
 		glUniform1f(m_uniformLoc.at(uniform), value);
 		CheckErrors("set uniform "s + uniform);
 	}
-	/*for (const auto& [uniform, loc] : m_uniformLoc)
-	{
-		glUniform1f(loc, m_uniformMap.at(uniform));
-		CheckErrors("set uniform "s + uniform);
-	}*/
 
-	for (const auto& [uniform, value] : m_anyUniformMap)
+	for (auto& [name, type] : m_uniforms)
 	{
-		if (value.type() == typeid(glm::mat4))
+		switch (type)
 		{
-			glUniformMatrix4fv(m_uniformLoc.at(uniform), 1, GL_FALSE, glm::value_ptr(std::any_cast<glm::mat4>(value)));
-			CheckErrors("set any uniform (mat4) "s + uniform);
-		}
-		else if (value.type() == typeid(glm::vec3))
+		case GL_FLOAT:
 		{
-			glUniform3fv(m_uniformLoc.at(uniform), 1, glm::value_ptr(std::any_cast<glm::vec3>(value)));
-			CheckErrors("set any uniform (vec3"s + uniform);
+			glUniform1f(m_uniformLoc.at(name), std::any_cast<float>(m_anyUniformMap.at(name)));
+			CheckErrors("set uniform "s + name);
+			break;
 		}
-		
+		case GL_FLOAT_VEC3:
+		{
+			glUniform3fv(m_uniformLoc.at(name), 1, glm::value_ptr(std::any_cast<glm::vec3>(m_anyUniformMap.at(name))));
+			CheckErrors("set any uniform (vec3"s + name);
+			break;
+		}
+		case GL_FLOAT_MAT4:
+		{
+			glUniformMatrix4fv(m_uniformLoc.at(name), 1, GL_FALSE, glm::value_ptr(std::any_cast<glm::mat4>(m_anyUniformMap.at(name))));
+			CheckErrors("set any uniform (mat4) "s + name);
+			break;
+		}
+		default:
+			break;
+		}
 	}
 
 	if (m_uniformTextureSamplerLoc != -1)
@@ -289,4 +295,43 @@ void SimpleContent::cleanup()
 	glDeleteBuffers(1, &m_vertexBuffer);
 	glDeleteBuffers(1, &m_indicesBuffer);
 	glDeleteVertexArrays(1, &m_vertexArray);
+}
+
+std::vector<std::pair<std::string, GLenum>>  SimpleContent::getShaderUniforms()
+{
+	GLint count;
+	glGetProgramiv(m_prog, GL_ACTIVE_UNIFORMS, &count);
+	CheckErrors("get active uniform count");
+	std::vector<std::pair<std::string, GLenum>> uniforms{};
+	GLchar name[256];
+	GLsizei length;
+	GLint size;
+	GLenum type;
+
+	for (int i = 0; i < count; i++)
+	{
+		glGetActiveUniform(m_prog, i, sizeof(name), &length, &size, &type, name);
+		CheckErrors("get active uniform");
+		uniforms.push_back(std::make_pair(name, type));
+	}
+
+	return uniforms;
+}
+
+void SimpleContent::setAnyUniformsFromShaderCode()
+{
+	const std::unordered_map<GLenum, std::any> GLTypeToCXX{
+		{GL_FLOAT, std::any{0.0F}},
+		{GL_INT, std::any{0}},
+		{GL_FLOAT_VEC3, std::any{glm::vec3{}}},
+		{GL_FLOAT_MAT4, std::any{glm::mat4{}}},
+	};
+
+	for (auto& [name, type] : m_uniforms)
+	{
+		if (GLTypeToCXX.count(type) == 1)
+		{
+			m_anyUniformMap[name] = GLTypeToCXX.at(type);
+		}
+	}
 }

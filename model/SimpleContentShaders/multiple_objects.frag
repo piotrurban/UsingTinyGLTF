@@ -9,6 +9,7 @@ uniform float u_maxCount;
 uniform float u_cameraZ;
 uniform sampler2D u_textureSampler;
 uniform vec3 u_diffuse;
+uniform vec3 u_light;
 
 vec3 gradient(vec3 delta_r, float f_r, float f_dx, float f_dy, float f_dz);
 float sierp_parallelogram(vec3 p, vec3 b0, vec3 b, float iter);
@@ -400,7 +401,7 @@ void main()
 
 	float fresnel = clamp(1.0 - dot(gr3, rd), 0.0, 1.0);
 	fresnel = min(pow(fresnel, 3.0), 0.5);
-	vec3 refr_refl =shad*mix(diffuse*u_diffuse + diffuse_2*lighting_color, reflected*lighting_color, fresnel);
+	vec3 refr_refl =shad*mix(diffuse*u_diffuse + diffuse_2*u_light, reflected*u_light, fresnel);
 
 	//color = vec4(bkg_color + step(0.0, - gr.z)*pow(gr.z,3)*lighting_color + step(0,gr.y)*pow(gr.y,3)*lighting_color_2, min(1.0, 0.02/pow(dist,2)));
 	//color = vec4( pow(max(1.0-dist,0.0),2)*lighting_color_2, 1.0);
@@ -409,19 +410,4 @@ void main()
 	//color.r = cos(dist*u_cameraZ);
 	//color.g = diffuse;
 	//color.b = 0.0;
-	vec2 uv = coord;
-	//color = vec4(noise(40.0*uv), noise(10.0*uv), mod(10.0*uv.x,1.0)*mod(10.0*uv.y, 1.0)*u_cameraZ*0.1, 1.0);
-	//color = vec4(hash(100.0*uv), hash(100.0*uv), mod(10.0*uv.x,1.0)*mod(10.0*uv.y, 1.0)*u_cameraZ*0.1, 1.0);
-	//color *= occ;
-	//color.xyz = mix(color.xyz, vec3(1.0,1.0,1.0), fog);
-	//color = vec4( bkg_color + max(vec3(0.0),dot(light_dir, gr)*lighting_color_2) + max(vec3(0.0), pow(gr3.y,3) * lighting_color) + 0.2*max(vec3(0.0), pow(gr3.z,3)*lighting_color_3), 1.0);
-	//color = vec4( step(-u_maxCount, -count)*0.01*count*lighting_color_2, 1.0);
-	//float wire = step(0., -abs(coord.x) + fwidth(coord.x));
-	//color = vec4(bkg_color, wire);
-	float al = 0.0;
-	if (gl_FragCoord.x > 48.0)
-	{
-		al = 1.0;
-	}
-	//color =vec4(bkg_color, dFdx(al));
 }

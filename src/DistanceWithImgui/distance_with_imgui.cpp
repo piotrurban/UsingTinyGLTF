@@ -56,8 +56,8 @@ int main()
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 	//io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
 
-	
-	
+
+
 	registerResizeCallback(window);
 	registerResizeCallback(windowHUD);
 	glfwMakeContextCurrent(window);
@@ -81,9 +81,6 @@ int main()
 	builder.setVertexShaderPath(pathToModels / "SimpleContentShaders/raymarching_base.vert");
 	builder.setFragmentShaderPath(pathToModels / "SimpleContentShaders" / "multiple_objects.frag");
 	builder.setTexturePath(pathToModels / "cyclope.png");
-	builder.setUniforms({ "u_maxCount", "u_cameraZ" });
-	builder.addAnyUniform("u_InverseMVP");
-	builder.addAnyUniform("u_diffuse");
 
 	SimpleContent distance_content = builder.build();
 
@@ -116,21 +113,16 @@ int main()
 	float cameraZ{ 0.0F };
 
 	const glm::mat4 persp = glm::perspective(45.0f * 3.1415926F / 180.0F, (float)window_width / (float)window_height, 0.1f, 100.0f);
+	distance_content.setUniform("u_light", glm::vec3(1.0, 1.0, 1.0));
 	while (!glfwWindowShouldClose(window) || !glfwWindowShouldClose(windowHUD))
 	{
 		glfwMakeContextCurrent(window);
 		const glm::mat4 proj = ballTracker.getProjectionMat();
 		const glm::mat4 camera = ballTracker.getModelMat();
 		distance_content.setMV(glm::dmat4(camera));
+		distance_content.setUniform("u_MVP", glm::mat4(camera));
 		distance_content.setUniform("u_InverseMVP", glm::inverse(camera));
-		distance_content.setUniform("u_diffuse", glm::make_vec3(ShaderController::shaderData.diffuse));
-		distance_content.setUniform("u_maxCount", maxRaymarchingSteps);
-		distance_content.setUniform("u_cameraZ", cameraZ);
-		//if (ballTracker.m_updated)
-		//{
-		//	ballTracker.m_updated = false;
-		//	std::cout << std::format("camera matrix = {}", camera) << std::endl;
-		//}
+
 		const float rayCos{ ballTracker.getCurrQuat()[2] };
 		if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 		{
@@ -174,22 +166,11 @@ int main()
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGui::SetNextWindowPos(ImVec2(0, 0));
-		if (!ImGui::Begin("Shader uniforms"))
+		if (ImGui::Begin("Shader uniforms"))
 		{
-			ImGui::End();
+			ShaderController::displaySimpleContentControls(distance_content);
 		}
-		else
-		{
-			ShaderController::displayControls();
-			ImGui::Separator();
-			PushStyleCompact();
-			ImGui::PushItemWidth(ImGui::GetFontSize() * 20);
-			ImGui::DragFloat("Shader uniform cameraZ", &cameraZ);
-			ImGui::PopItemWidth();
-			ImGui::DragFloat("Shader uniform RaymarchingSteps", &maxRaymarchingSteps);
-			ImGui::PopStyleVar(2);
-			ImGui::End();
-		}
+		ImGui::End();
 		ImGui::ShowDemoWindow();
 
 		ImGui::Render();

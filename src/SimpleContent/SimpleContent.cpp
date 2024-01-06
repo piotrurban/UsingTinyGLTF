@@ -199,11 +199,6 @@ void SimpleContent::setMV(const glm::mat4& mv)
 	m_mv = mv;
 }
 
-void SimpleContent::setUniform(const std::string& name, const float value)
-{
-	m_uniformMap[name] = value;
-}
-
 void SimpleContent::setUniform(const std::string& name, const std::any value)
 {
 	m_anyUniformMap[name] = value;
@@ -217,19 +212,6 @@ void SimpleContent::draw()
 	CheckErrors("get mvp loc");
 	glUniformMatrix4fv(u_MVP, 1, GL_FALSE, glm::value_ptr(m_mv));
 	CheckErrors("set mvp");
-
-	/*GLuint u_radius = glGetUniformLocation(m_prog, "u_radius");
-	CheckErrors("get radius loc");
-	if (u_radius != -1)
-	{
-		glUniform1f(u_radius, 0.3F);
-	}*/
-
-	for (const auto& [uniform, value] : m_uniformMap)
-	{
-		glUniform1f(m_uniformLoc.at(uniform), value);
-		CheckErrors("set uniform "s + uniform);
-	}
 
 	for (auto& [name, type] : m_uniforms)
 	{
@@ -245,6 +227,12 @@ void SimpleContent::draw()
 		{
 			glUniform3fv(m_uniformLoc.at(name), 1, glm::value_ptr(std::any_cast<glm::vec3>(m_anyUniformMap.at(name))));
 			CheckErrors("set any uniform (vec3"s + name);
+			break;
+		}
+		case GL_FLOAT_VEC4:
+		{
+			glUniform4fv(m_uniformLoc.at(name), 1, glm::value_ptr(std::any_cast<glm::vec4>(m_anyUniformMap.at(name))));
+			CheckErrors("set any uniform (vec4"s + name);
 			break;
 		}
 		case GL_FLOAT_MAT4:
@@ -324,12 +312,13 @@ void SimpleContent::setAnyUniformsFromShaderCode()
 		{GL_FLOAT, std::any{0.0F}},
 		{GL_INT, std::any{0}},
 		{GL_FLOAT_VEC3, std::any{glm::vec3{}}},
+		{GL_FLOAT_VEC4, std::any{glm::vec4{}}},
 		{GL_FLOAT_MAT4, std::any{glm::mat4{}}},
 	};
 
 	for (auto& [name, type] : m_uniforms)
 	{
-		if (GLTypeToCXX.count(type) == 1)
+		if ((GLTypeToCXX.count(type) == 1) && (m_anyUniformMap.count(name) == 0))
 		{
 			m_anyUniformMap[name] = GLTypeToCXX.at(type);
 		}

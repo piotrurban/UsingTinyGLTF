@@ -25,7 +25,6 @@ public:
 	virtual ~SimpleContent();
 
 	void setMV(const glm::mat4& mv);
-	void setUniform(const std::string& name, const float value);
 	void setUniform(const std::string& name, const std::any value);
 	void draw();
 	void cleanup();

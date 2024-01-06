@@ -10,6 +10,13 @@ uniform float u_cameraZ;
 uniform sampler2D u_textureSampler;
 uniform vec3 u_diffuse;
 uniform vec3 u_light;
+uniform float u_refl_exp;
+uniform float u_clamp_diffuse;
+uniform float u_noise_frac;
+uniform float u_focal_diff;
+uniform float u_mix_focals;
+uniform float u_rad2;
+uniform float u_noise_phase;
 
 vec3 gradient(vec3 delta_r, float f_r, float f_dx, float f_dy, float f_dz);
 float sierp_parallelogram(vec3 p, vec3 b0, vec3 b, float iter);
@@ -203,6 +210,21 @@ float some_noise(vec2 uv)
     return pow(1.0-pow(wv.x * wv.y,0.65),1.0);
 }
 
+float multi_noise(vec2 uv, float frac, float freq, float phase)
+{
+	float noise = 0.0;
+	float mult = 1.0;
+	float phase_mult = 1.0;
+	for(int i = 0; i < 4; i++)
+	{
+		noise += 1.0/mult*some_noise(uv*mult - phase*freq*phase_mult);
+		noise += 1.0/mult*some_noise(uv*mult + phase*freq*phase_mult);
+		mult *= frac;
+		phase_mult *= frac*0.9;
+	}
+	return noise;
+}
+
 vec2 general_figure(vec3 p, vec3 v_param1, vec3 v_param2, float f_param1, float f_param2, float r, out vec3 extra)
 {
 	float dist = sdfBox(p -vec3(0.3,0.3,1.0), v_param1/2.0, r);
@@ -214,15 +236,21 @@ vec2 general_figure(vec3 p, vec3 v_param1, vec3 v_param2, float f_param1, float 
 	//p.y = mod(p.y, 2.0) - 0.45 - u_cameraZ*0.1;
 	//dist_id = opU( dist_id, vec2(length(p - vec3(-0.51,0.1,0.0)) - 0.2, 2.3));
 	vec2 uv = p.xz; 
-	dist_id = vec2(length(p) - 5.0  +0.6 + 0.23*(some_noise(uv+u_cameraZ*0.1) + some_noise(uv - u_cameraZ*0.1))+ 0.08*some_noise(1.9*p.xz + u_cameraZ*0.2) 
-	+ 0.08*some_noise(1.9*p.xz - u_cameraZ*0.2) + 0.05*some_noise(3.5*p.xz + u_cameraZ*0.4), 2.0);
+	//dist_id = vec2(p.y +0.4 + 0.23*(some_noise(uv+u_cameraZ*0.1) + some_noise(uv - u_cameraZ*0.1))+ 0.08*some_noise(1.9*p.xz + u_cameraZ*0.2) 
+	//+ 0.08*some_noise(1.9*p.xz - u_cameraZ*0.2) + 0.05*some_noise(3.5*p.xz + u_cameraZ*0.4), 2.0);
+	// plane
+	dist_id = vec2(p.y + 0.4 + 0.2*multi_noise(uv, 3.0 + u_noise_frac, 1.0, u_cameraZ));
+	// mix of 2 balls
+	float len = mix(length(p), -length(p - vec3(u_focal_diff,0,0)), u_mix_focals );
+	dist_id = vec2(len- 5.0 - u_rad2, 2.0);
+	dist_id.x += 0.1*multi_noise(uv, 3.0 + u_noise_frac, 1.0, u_noise_phase);
 	return dist_id;
 }
 
 vec4 raymarch_general_figure(vec3 ro, vec3 rd, vec3 v_param1, vec3 v_param2, float f_param1,out  float f_param2, float r)
 {
 	float eps = 0.0015;
-	float D = 10.0;
+	float D = 100.0;
 	float dist = 0.0;
 	vec3 rd_n = normalize(rd);
 	vec3 grad = vec3(0.0);
@@ -257,7 +285,7 @@ vec4 raymarch_general_figure(vec3 ro, vec3 rd, vec3 v_param1, vec3 v_param2, flo
 		}
 		dist += step;
 	}
-	//discard;
+	discard;
 	return vec4(grad, dist);
 
 }
@@ -355,7 +383,7 @@ float hash_tx(vec2 x)
 }
 void main()
 {
-	vec3 ro = vec3(0,0, -8.0);
+	vec3 ro = vec3(0,0, -8.0-u_cameraZ);
 	//ro.x = mod(ro.x, 1.0) -0.5;
 	vec3 rd = normalize(vec3(coord, 1.0));
 	//vec3 gr = raymarch_sphere(ro, rd, vec3(0.10, 0.30, 0.14), 0.20);
@@ -397,12 +425,12 @@ void main()
 	lighting_color_2=mix(lighting_color_2, vec3(0.4,0.4,0.0), clamp(dist,0,1)); 
 	vec3 lighting_color_3 = vec3(1.0,0.0,0.0);
 
-	float reflected = max(0.0,10*pow(spec,30));
+	float reflected = max(0.0,10*pow(spec,u_refl_exp));
 
 	float fresnel = clamp(1.0 - dot(gr3, rd), 0.0, 1.0);
 	fresnel = min(pow(fresnel, 3.0), 0.5);
-	vec3 refr_refl =shad*mix(diffuse*u_diffuse + diffuse_2*u_light, reflected*u_light, fresnel);
-
+	//vec3 refr_refl =shad*mix(diffuse*u_diffuse + diffuse_2*u_light, reflected*u_light, fresnel);
+	vec3 refr_refl = mix(u_diffuse, reflected*u_light, clamp(1.0 - dot(light_dir, gr3), 0.0, u_clamp_diffuse));
 	//color = vec4(bkg_color + step(0.0, - gr.z)*pow(gr.z,3)*lighting_color + step(0,gr.y)*pow(gr.y,3)*lighting_color_2, min(1.0, 0.02/pow(dist,2)));
 	//color = vec4( pow(max(1.0-dist,0.0),2)*lighting_color_2, 1.0);
 	//color = vec4( bkg_color*0.8 + shad*max(vec3(0),10*pow(spec,10)*lighting_color_2 + diffuse*lighting_color_2) , 1.0);

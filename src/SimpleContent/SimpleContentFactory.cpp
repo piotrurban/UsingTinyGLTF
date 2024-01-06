@@ -1,5 +1,6 @@
 #include "SimpleContentFactory.h"
 #include <filesystem>
+#include <generated_model/models.h>
 
 namespace fs = std::filesystem;
 using namespace std::string_literals;
@@ -47,6 +48,57 @@ SimpleContent getSimpleContent(SimpleContentType type)
 	builder.setConfig(config);
 	return builder.build();
 }
+
+SimpleContent createSimpleContent(const std::string& name)
+{
+	auto builder = SimpleContentBuilder{};
+
+	if (name == "multiple_objects")
+	{
+		builder.setType(SimpleContentType::SQUARE);
+		builder.setVertexShaderPath(pathToModels / "SimpleContentShaders/raymarching_base.vert");
+		builder.setFragmentShaderPath(pathToModels / "SimpleContentShaders" / "multiple_objects.frag");
+
+		SimpleContent content = builder.build();
+		content.setUniform("u_light", glm::vec3(1.0, 1.0, 1.0));
+		content.setUniform("u_diffuse", glm::vec3(1.0, 1.0, 0.0));
+		content.setUniform("u_refl_exp", 30.0f);
+		content.setUniform("u_clamp_diffuse", 0.5f);
+		return content;
+	}
+	else if (name == "cyclope")
+	{
+		builder.setType(SimpleContentType::SQUARE);
+		builder.setVertexShaderPath(pathToModels / "SimpleContentShaders/raymarching_base.vert");
+		builder.setFragmentShaderPath(pathToModels / "SimpleContentShaders" / "plain_texture.frag");
+		builder.setTexturePath(pathToModels / "cyclope.png");
+
+		SimpleContent content = builder.build();
+		return content;
+	}
+	else if (name == "seascape")
+	{
+		builder.setType(SimpleContentType::SQUARE);
+		builder.setVertexShaderPath(pathToModels / "SimpleContentShaders/raymarching_base.vert");
+		builder.setFragmentShaderPath(pathToModels / "SimpleContentShaders" / "seascape.frag");
+
+		SimpleContent content = builder.build();
+		content.setUniform("u_fresnel_exp", 3.0F);
+		return content;
+	}
+	else
+	{
+		builder.setType(SimpleContentType::SQUARE);
+		builder.setVertexShaderPath(pathToModels / "SimpleContentShaders/raymarching_base.vert");
+		builder.setFragmentShaderPath(pathToModels / "SimpleContentShaders" / "multiple_objects.frag");
+		builder.setTexturePath(pathToModels / "cyclope.png");
+
+		SimpleContent content = builder.build();
+		return content;
+	}
+}
+
+
 
 void SimpleContentBuilder::setConfig(const SimpleContentConfig& config)
 {

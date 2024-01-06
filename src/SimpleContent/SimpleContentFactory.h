@@ -55,3 +55,5 @@ void SimpleContentBuilder::addAnyUniform(const std::string& name)
 {
 	m_config.m_anyUniforms[name] = T{};
 }
+
+SimpleContent createSimpleContent(const std::string& name);

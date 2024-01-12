@@ -36,6 +36,7 @@ public:
 	static const std::filesystem::path s_distanceFragmentShader;
 private:
 	void setupVertices();
+	void setupOffscreenBuffers();
 	void loadShaders();
 	std::vector<std::pair<std::string, GLenum>>  getShaderUniforms();
 	void setAnyUniformsFromShaderCode();
@@ -53,6 +54,11 @@ private:
 	GLuint m_indexArray;
 	GLuint m_tex;
 	GLuint m_prog;
+public:
+	GLuint m_fbo1;
+	GLuint m_fbo2;
+	GLuint m_tex1;
+	GLuint m_tex2;
 
 public:
 	std::unordered_map<std::string, float> m_uniformMap;

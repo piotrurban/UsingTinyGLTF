@@ -1,6 +1,7 @@
-attribute vec3    in_vertex;
+#version 450
+in vec3    in_vertex;
 
-varying vec2 coord;
+out vec2 coord;
 
 void main(void)
 {

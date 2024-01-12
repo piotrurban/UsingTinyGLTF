@@ -23,6 +23,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <generated_model/models.h>
 
+void APIENTRY errorCbk(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+{
+	std::cout << std::format("OpenGL error: source {}, id {}, severity {}, message {}\n", source, id, severity, message);
+}
 // Make the UI compact because there are so many fields
 static void PushStyleCompact()
 {
@@ -35,6 +39,7 @@ int main()
 {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 
 	if (!glfwInit())
 	{
@@ -68,6 +73,11 @@ int main()
 		exit(2);
 	}
 
+	glDebugMessageCallback(errorCbk, nullptr);
+	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+
+
 	BallTracker& ballTracker = BallTracker::getInstance();
 	ballTracker.init();
 	ballTracker.setWindowSize(window_width, window_height);
@@ -76,7 +86,12 @@ int main()
 	SimpleContent distance_content = createSimpleContent("multiple_objects");
 
 	glfwMakeContextCurrent(windowHUD);
-	SimpleContent hud_content = createSimpleContent("cyclope");
+	glDebugMessageCallback(errorCbk, nullptr);
+	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+	SimpleContent hud_content = createSimpleContent("offscreen");
+	hud_content.setUniform("u_tex1", 1);
+	hud_content.setUniform("u_tex2", 2);
 
 	glfwMakeContextCurrent(window);
 	glViewport(0, 0, window_width, window_height);
@@ -98,13 +113,17 @@ int main()
 	glfwMakeContextCurrent(windowHUD);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBindTexture(GL_TEXTURE_2D, hud_content.m_tex2);
+	unsigned char* pix_red = new unsigned char[400];
+	std::fill(pix_red, pix_red + 400, 200U);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 10, 10, 0, GL_RGB, GL_UNSIGNED_BYTE, pix_red);
+	delete[] pix_red;
 
 	float maxRaymarchingSteps{ 200.0F };
 	float cameraZ{ 0.0F };
-
+	uint32_t mode{ 0U };
 	const glm::mat4 persp = glm::perspective(45.0f * 3.1415926F / 180.0F, (float)window_width / (float)window_height, 0.1f, 100.0f);
-	
-	
+
 	while (!glfwWindowShouldClose(window) || !glfwWindowShouldClose(windowHUD))
 	{
 		glfwMakeContextCurrent(window);
@@ -138,6 +157,8 @@ int main()
 		CheckErrors("clear");
 		glEnable(GL_DEPTH_TEST);
 
+
+
 		distance_content.draw();
 		glfwSwapBuffers(window);
 		glFlush();
@@ -146,11 +167,35 @@ int main()
 
 		glfwPollEvents();
 
+
+
+		hud_content.setUniform("u_render_mode", mode);
+		if ((mode == 1) || (mode == 3))
+		{
+			glViewport(0, 0, window_width / 3, window_height / 3);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		}
+		else if (mode == 0)
+		{
+			_sleep(50);
+			glViewport(0, 0, 10, 10);
+			glBindFramebuffer(GL_FRAMEBUFFER, hud_content.m_fbo2);
+		}
+		else if (mode == 2)
+		{
+			_sleep(50);
+			glViewport(0, 0, 10, 10);
+			glBindFramebuffer(GL_FRAMEBUFFER, hud_content.m_fbo1);
+		}
+		else
+		{
+			glViewport(0, 0, window_width / 3, window_height / 3);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		}
 		glClearColor(0.0F, 0.0F, 0.3F, 1.0F);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		CheckErrors("clear");
 		glEnable(GL_DEPTH_TEST);
-
 		hud_content.draw();
 
 		ImGui_ImplOpenGL3_NewFrame();
@@ -167,8 +212,15 @@ int main()
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-		glfwSwapBuffers(windowHUD);
+		//_sleep(100);
+		if (mode % 2 == 1)
+		{
+			glfwSwapBuffers(windowHUD);
+		}
 		glFlush();
+
+		mode++;
+		mode %= 4;
 	}
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();

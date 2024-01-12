@@ -86,6 +86,16 @@ SimpleContent createSimpleContent(const std::string& name)
 		content.setUniform("u_fresnel_exp", 3.0F);
 		return content;
 	}
+	else if (name == "offscreen")
+	{
+		builder.setType(SimpleContentType::SQUARE);
+		builder.setVertexShaderPath(pathToModels / "SimpleContentShaders/raymarching_base.vert");
+		builder.setFragmentShaderPath(pathToModels / "SimpleContentShaders" / "offscreen_tex.frag");
+
+		SimpleContent content = builder.build();
+		content.setUniform("u_fresnel_exp", 3.0F);
+		return content;
+	}
 	else
 	{
 		builder.setType(SimpleContentType::SQUARE);

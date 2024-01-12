@@ -28,6 +28,13 @@ GLenum glCheckError_(const char* file, int line, GLenum errorCode)
 }
 #define glCheckError(e) glCheckError_(__FILE__, __LINE__, e) 
 
+void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char* message, const void* userParam) {
+	// Handle the debug message
+	// For example, print it to the standard error stream
+	std::cerr << "OpenGL Debug Message: " << message << std::endl;
+	// You can add more sophisticated handling here, like filtering messages based on their severity or type
+}
+
 bool LoadShader(GLenum shaderType,  // GL_VERTEX_SHADER or GL_FRAGMENT_SHADER(or
 	// maybe GL_COMPUTE_SHADER)
 	GLuint& shader, const char* shaderSourceFilename) {
@@ -100,6 +107,7 @@ void CheckErrors(std::string desc) {
 	if (e != GL_NO_ERROR) {
 		fprintf(stderr, "OpenGL error in \"%s\": %d (%d)\n", desc.c_str(), e, e);
 		glCheckError(e);
+		_sleep(10000);
 		exit(20);
 	}
 }

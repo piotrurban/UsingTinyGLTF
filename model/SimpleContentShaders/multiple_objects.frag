@@ -1,4 +1,4 @@
-#version 330
+#version 450
 in vec2 coord;
 out vec4 color;
 
@@ -60,7 +60,7 @@ float hash( vec2 p ) {
 	p = floor(p + 0.5);
 	uint a = uint(abs(p.x) );
 	uint b = uint(abs(p.y) );
-	const uint w = 32;
+	const uint w = 32u;
 	const uint s = w/2u;
 	a *= 3284157443u;
     b ^= a << s | a >> w - s;
@@ -227,8 +227,8 @@ float multi_noise(vec2 uv, float frac, float freq, float phase)
 
 vec2 general_figure(vec3 p, vec3 v_param1, vec3 v_param2, float f_param1, float f_param2, float r, out vec3 extra)
 {
-	float dist = sdfBox(p -vec3(0.3,0.3,1.0), v_param1/2.0, r);
-	vec2 dist_id = opU( vec2(dist, 0), vec2(length(p - vec3(-0.2,0.,0.)) - 0.2, 1.0));
+	vec2 dist_id;
+	// dist_id = opU( vec2(dist, 0), vec2(length(p - vec3(-0.2,0.,0.)) - 0.2, 1.0));
 	//dist_id = opU( dist_id, vec2(length(p/3.0 - vec3(0.2,0.,1.0)) - 0.2, 2.0));
 	//dist_id = opU( dist_id, vec2(length(p - vec3(0.16,0.1,0.0)) - 0.2, 2.0));
 	//dist_id = opU( dist_id, vec2(length(p - vec3(0.0,0.1,0.0)) - 0.2, 2.0));
@@ -238,12 +238,19 @@ vec2 general_figure(vec3 p, vec3 v_param1, vec3 v_param2, float f_param1, float 
 	vec2 uv = p.xz; 
 	//dist_id = vec2(p.y +0.4 + 0.23*(some_noise(uv+u_cameraZ*0.1) + some_noise(uv - u_cameraZ*0.1))+ 0.08*some_noise(1.9*p.xz + u_cameraZ*0.2) 
 	//+ 0.08*some_noise(1.9*p.xz - u_cameraZ*0.2) + 0.05*some_noise(3.5*p.xz + u_cameraZ*0.4), 2.0);
-	// plane
+	
+	/// plane + noise 
 	dist_id = vec2(p.y + 0.4 + 0.2*multi_noise(uv, 3.0 + u_noise_frac, 1.0, u_cameraZ));
-	// mix of 2 balls
-	float len = mix(length(p), -length(p - vec3(u_focal_diff,0,0)), u_mix_focals );
-	dist_id = vec2(len- 5.0 - u_rad2, 2.0);
-	dist_id.x += 0.1*multi_noise(uv, 3.0 + u_noise_frac, 1.0, u_noise_phase);
+	
+	/// mix of 2 balls + noise
+	//float len = mix(length(p), -length(p - vec3(u_focal_diff,0,0)), u_mix_focals );
+	//dist_id = vec2(len- 5.0 - u_rad2, 2.0);
+	//dist_id.x += 0.1*multi_noise(uv, 3.0 + u_noise_frac, 1.0, u_noise_phase);
+
+	/// box + noise
+	//float dist = sdfBox(p -vec3(0.3,0.3,1.0), v_param1, r);
+	//dist_id = vec2(dist + 0.02*multi_noise(uv, 3.0 + u_noise_frac, 1.0, u_cameraZ), 2.0);
+	
 	return dist_id;
 }
 

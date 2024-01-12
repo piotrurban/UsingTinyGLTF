@@ -1,6 +1,8 @@
-attribute vec3    in_vertex;
-attribute vec3    in_normal;
-attribute vec2    in_texcoord;
+#version 450
+
+in vec3    in_vertex;
+in vec3    in_normal;
+in vec2    in_texcoord;
 
 uniform mat4 u_MVP;
 //uniform mat4 u_MVInvTrans;

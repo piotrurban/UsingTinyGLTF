@@ -17,10 +17,12 @@ int main()
 {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 
 	if (!glfwInit())
 	{
 		std::cout << "glfwInit failed!\n";
+		_sleep(5000);
 		exit(1);
 	}
 
@@ -30,9 +32,11 @@ int main()
 	window = glfwCreateWindow(window_width, window_height, "scene graph example", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
+
 	if (glewInit() != GLEW_OK)
 	{
 		std::cout << "glewInit failed!\n";
+		_sleep(5000);
 		exit(2);
 	}
 
@@ -52,6 +56,7 @@ int main()
 	rubiks_cube_content.setup_mesh_data();
 	std::map<std::tuple<int, int, int>, unsigned short> coords_to_node_id{};
 	int currentId{ 1 };
+
 	for (int x = -1; x < 2; x++)
 		for (int y = -1; y < 2; y++)
 			for (int z = -1; z < 2; z++)
@@ -70,14 +75,18 @@ int main()
 			}
 
 	const glm::mat4 persp = glm::perspective(45.0f * 3.1415926F / 180.0F, (float)window_width / (float)window_height, 0.1f, 100.0f);
+
 	glEnable(GL_BLEND);
 	CheckErrors("blend");
+
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	CheckErrors("alpha");
+
 	float angle = 0.0F;
 	float delta = 0.05F;
 	while (!glfwWindowShouldClose(window))
 	{
+		_sleep(20);
 		angle += delta;
 		glm::quat rotZQuat = glm::angleAxis(glm::radians(delta), glm::vec3(0.0F, 0.0F, 1.0F));
 		std::vector<double> rotZQuatAsVector{ rotZQuat.x, rotZQuat.y, rotZQuat.z, rotZQuat.w };

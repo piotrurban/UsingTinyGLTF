@@ -6,7 +6,7 @@
 #include <filesystem>
 #include <iostream>
 #include <string>
-
+#include <random>
 namespace fs = std::filesystem;
 using namespace std::literals;
 
@@ -37,12 +37,17 @@ SimpleContent::SimpleContent(const std::vector<glm::vec3>& vertices, const std::
 	, m_uniformMap{}
 	, m_anyUniformMap{ anyUniforms }
 	, m_uniformTextureSamplerLoc{ -1 }
+	, m_fbo1{ 0 }
+	, m_fbo2{ 0 }
+	, m_tex1{ 0 }
+	, m_tex2{ 0 }
 {
 	for (const std::string& uniform : uniforms)
 	{
 		m_uniformMap[uniform] = 0.0F;
 	}
 	setupVertices();
+	setupOffscreenBuffers();
 	loadShaders();
 }
 
@@ -192,6 +197,7 @@ void SimpleContent::loadShaders()
 		}
 	}
 	m_uniformTextureSamplerLoc = glGetUniformLocation(m_prog, "u_textureSampler");
+	setUniform("u_textureSampler", 0);
 }
 
 void SimpleContent::setMV(const glm::mat4& mv)
@@ -217,6 +223,18 @@ void SimpleContent::draw()
 	{
 		switch (type)
 		{
+		case GL_INT:
+		{
+			glUniform1i(m_uniformLoc.at(name), std::any_cast<int>(m_anyUniformMap.at(name)));
+			CheckErrors("set uniform "s + name);
+			break;
+		}
+		case GL_UNSIGNED_INT:
+		{
+			glUniform1ui(m_uniformLoc.at(name), std::any_cast<uint32_t>(m_anyUniformMap.at(name)));
+			CheckErrors("set uniform "s + name);
+			break;
+		}
 		case GL_FLOAT:
 		{
 			glUniform1f(m_uniformLoc.at(name), std::any_cast<float>(m_anyUniformMap.at(name)));
@@ -241,6 +259,12 @@ void SimpleContent::draw()
 			CheckErrors("set any uniform (mat4) "s + name);
 			break;
 		}
+		case GL_SAMPLER_2D:
+		{
+			glUniform1i(m_uniformLoc.at(name), std::any_cast<int32_t>(m_anyUniformMap.at(name)));
+			CheckErrors("set any uniform (sampler2D) "s + name);
+			break;
+		}
 		default:
 			break;
 		}
@@ -254,6 +278,7 @@ void SimpleContent::draw()
 		CheckErrors("active tex");
 		glBindTexture(GL_TEXTURE_2D, m_tex);
 	}
+
 	glBindVertexArray(m_vertexArray);
 	CheckErrors("bind vert array");
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
@@ -311,9 +336,11 @@ void SimpleContent::setAnyUniformsFromShaderCode()
 	const std::unordered_map<GLenum, std::any> GLTypeToCXX{
 		{GL_FLOAT, std::any{0.0F}},
 		{GL_INT, std::any{0}},
+		{GL_UNSIGNED_INT, std::any{0U}},
 		{GL_FLOAT_VEC3, std::any{glm::vec3{}}},
 		{GL_FLOAT_VEC4, std::any{glm::vec4{}}},
 		{GL_FLOAT_MAT4, std::any{glm::mat4{}}},
+		{GL_SAMPLER_2D, std::any{0U}}
 	};
 
 	for (auto& [name, type] : m_uniforms)
@@ -323,4 +350,55 @@ void SimpleContent::setAnyUniformsFromShaderCode()
 			m_anyUniformMap[name] = GLTypeToCXX.at(type);
 		}
 	}
+}
+
+void SimpleContent::setupOffscreenBuffers()
+{
+	std::array<GLuint, 2> textures = { 0U,0U };
+	unsigned char* pix = new unsigned char[400];
+
+	std::mt19937 rng;
+	std::random_device rd;
+	std::generate_n(pix, 400, std::ref(rd));
+	for (GLuint& tex : textures)
+	{
+		std::generate_n(pix, 400, std::ref(rd));
+		glGenTextures(1, &tex);
+		glBindTexture(GL_TEXTURE_2D, tex);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 10, 10, 0, GL_RGB, GL_UNSIGNED_BYTE, pix);
+		CheckErrors("tex 2D");
+	}
+	m_tex1 = textures.at(0);
+	m_tex2 = textures.at(1);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, m_tex1);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, m_tex2);
+	
+	std::array<GLuint, 2> fbos = { 0U,0U };
+	for (uint8_t i = 0; i < fbos.size(); i++)
+	{
+		glGenFramebuffers(1, &fbos[i]);
+		CheckErrors("framebuf");
+		glBindFramebuffer(GL_FRAMEBUFFER, fbos[i]);
+		CheckErrors("framebuf bind");
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textures[i], 0);
+		if (!(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE))
+		{
+			std::cerr << "Failed to initialize framebuffer " << fbos[i] << std::endl;
+		}
+	}
+
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
+	m_fbo1 = fbos.at(0);
+	m_fbo2 = fbos.at(1);
+	delete[] pix;
 }

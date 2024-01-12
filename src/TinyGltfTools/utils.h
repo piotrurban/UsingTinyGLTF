@@ -19,7 +19,7 @@ using namespace std::chrono_literals;
     }                                                                         \
   }
 
-
+void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char* message, const void* userParam);
 bool LoadShader(GLenum shaderType, GLuint& shader, const char* shaderSourceFilename);
 bool LinkShader(GLuint& prog, GLuint& vertShader, GLuint& fragShader);
 void CheckErrors(std::string desc);
